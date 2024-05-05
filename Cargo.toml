@@ -11,3 +11,4 @@ path = "sidt/src/main.rs"
 
 [dependencies]
 chrono = "0.4.38"
+parquet = "51.0.0"

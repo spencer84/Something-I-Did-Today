@@ -1,5 +1,13 @@
 use std::env;
 use chrono::prelude::*;
+use std::{fs, path::Path, sync::Arc};
+use parquet::{
+    file::{
+        properties::WriterProperties,
+        writer::SerializedFileWriter,
+    },
+    schema::parser::parse_message_type,
+};
 
 fn main(){
     let args: Vec<String> = env::args().collect();
@@ -13,5 +21,18 @@ fn main(){
 
     let formatted_date: String = local_date.format("%Y-%m-%d").to_string();
 
-    println!("{:?}",entry);
+    // Write to parquet
+
+    let path = "data/journal.parquet";
+
+    let message_type = "
+  message schema {
+    REQUIRED DateTime date;
+    OPTIONAL String text;
+  }
+";
+let schema = Arc::new(parse_message_type(message_type).unwrap());
+let file = fs::File::create(&path).unwrap();
+
+    println!("{:?}",formatted_date + " " + &entry);
 }
