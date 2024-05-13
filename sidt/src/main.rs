@@ -14,9 +14,9 @@ fn main(){
 
     let formatted_date: String = local_date.format("%Y-%m-%d").to_string();
 
-    let dated_entry: String =  formatted_date + " " + &entry;
+    let dated_entry: String =  formatted_date + " " + &entry+"\n";
 
-    let path = "journal.txt";
+    let path: &str = "journal.txt";
 
     // Open journal file
 
