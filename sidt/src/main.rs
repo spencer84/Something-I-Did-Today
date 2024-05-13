@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, fs::OpenOptions, io::Write};
 use chrono::prelude::*;
 use std::fs;
 
@@ -16,10 +16,19 @@ fn main(){
 
     let dated_entry: String =  formatted_date + " " + &entry;
 
-    // Write to text file
-
     let path = "journal.txt";
-    fs::write(path, &dated_entry);
+
+    // Open journal file
+
+    let mut file = OpenOptions::new()
+    .write(true)
+    .append(true)
+    .open(path)
+    .unwrap();
+
+    // Write to text file
+    file.write_all(&dated_entry.as_bytes());
+    //fs::write(path, );
 
     println!("{:?}",&dated_entry);
 }
