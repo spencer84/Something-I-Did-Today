@@ -35,8 +35,8 @@ fn main(){
         panic!()
     };
 
-    let last_entry: Vec<_> = buf.lines().collect();
 
+    // print out all lines
     for line in lines{
         println!("{:?}",line);
     }
