@@ -53,10 +53,13 @@ fn main(){
 
     if last_date == formatted_date {
         // Get previous entry
-        let mut previous_entry = last_line.split(" ").next().unwrap();
+        let previous_entry = last_line.split(" ").next().unwrap().strip_suffix("\n").unwrap();
         println!("{:?}",&previous_entry);
-        // Add latest entry
-        &previous_entry.strip_suffix("\n") + " " + &entry;
+        // Combine previous entry and current entry
+        let latest_entry = format!("{previous_entry} {entry}");
+        // Add the full entry
+        file.write_all(&latest_entry.as_bytes()).expect("Could not write.");
+
     } else{
         // Write to text file
         file.write_all(&dated_entry.as_bytes()).expect("Could not write.");
