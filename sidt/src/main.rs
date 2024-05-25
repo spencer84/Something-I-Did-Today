@@ -1,4 +1,4 @@
-use std::{env, fs::{OpenOptions,File}, io::{self, Result, Lines, BufRead, BufReader, Write}};
+use std::{env, fs::{File, OpenOptions}, io::{self, BufRead, Write}, os::unix::fs::FileExt};
 use chrono::prelude::*;
 use std::path::Path;
 
@@ -25,9 +25,6 @@ fn main(){
     .append(true)
     .open(path)
     .unwrap();
-
-    let buf = BufReader::new(&file);
-
     
     let Ok(lines) = read_lines(&path)
     else {
@@ -42,23 +39,26 @@ fn main(){
     // for line in lines{
     //     println!("{:?}",line.unwrap());
     // }
-    let mut last_line: String = lines.last().unwrap().unwrap();
-    println!("{:?}",&last_line);
 
-    let last_date: String = last_line.split(" ").take(1).collect();
+    let mut last_line = lines.last().unwrap().unwrap();
+    let mut last_line_array:std::str::Split<&str>  = last_line.split(" ");
+    println!("{:?}",&last_line_array);
+
+    let last_date:&str  = last_line_array.next().unwrap();
     println!("{:?}",&last_date);
 
     // How to handle if two entries on the same day?
     // If last_date and formatted_date match, then get the previous entry and add to it (remove the new line)
 
     if last_date == formatted_date {
-        // Get previous entry
-        let previous_entry = last_line.split(" ").next().unwrap().strip_suffix("\n").unwrap();
-        println!("{:?}",&previous_entry);
+        // Get previous entry and remove suffix
+        last_line.pop().unwrap().to_string();
+        println!("{:?}",&last_line);
         // Combine previous entry and current entry
-        let latest_entry = format!("{previous_entry} {entry}");
+        let latest_entry = format!("{last_line} {entry}\n");
         // Add the full entry
-        file.write_all(&latest_entry.as_bytes()).expect("Could not write.");
+        //file.write_all(&latest_entry.as_bytes()).expect("Could not write.");
+        file.write_at(&latest_entry.as_bytes(), 500).expect("Could not write.");
 
     } else{
         // Write to text file
