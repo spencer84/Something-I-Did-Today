@@ -1,4 +1,4 @@
-use std::{env, fs::{File, OpenOptions}, io::{self, BufRead, Write}, os::unix::fs::FileExt};
+use std::{env, fs::{File, OpenOptions}, io::{self, BufRead, Write}};
 use chrono::prelude::*;
 use std::path::Path;
 
@@ -14,9 +14,13 @@ fn main(){
 
     let formatted_date: String = local_date.format("%Y-%m-%d").to_string();
 
-    let dated_entry: String =  formatted_date.clone() + " " + &entry+"\n";
+    let dated_entry: String =  formatted_date.clone() + " " + &entry;
 
     let path: &str = "journal.txt";
+
+    // Match args
+
+    match_args(&args);
 
     // Open journal file
 
@@ -32,7 +36,7 @@ fn main(){
         panic!()
     };
 
-
+  
     // Print out all lines
     // TODO: Add a command for reading all lines
 
@@ -40,7 +44,7 @@ fn main(){
     //     println!("{:?}",line.unwrap());
     // }
 
-    let mut last_line = lines.last().unwrap().unwrap();
+    let last_line = lines.last().unwrap().unwrap();
     let mut last_line_array:std::str::Split<&str>  = last_line.split(" ");
     println!("{:?}",&last_line_array);
 
@@ -52,24 +56,23 @@ fn main(){
 
     if last_date == formatted_date {
         // Get previous entry and remove suffix
-        last_line.pop().unwrap().to_string();
-        println!("{:?}",&last_line);
+
         // Combine previous entry and current entry
-        let latest_entry = format!("{last_line} {entry}\n");
+        let latest_entry = format!(" {entry}");
         // Add the full entry
         //file.write_all(&latest_entry.as_bytes()).expect("Could not write.");
-        file.write_at(&latest_entry.as_bytes(), 500).expect("Could not write.");
+        // Getting close. The problem now is that we need to overwite the previous entry
+
+        // Combine prev
+        file.write_all(&latest_entry.as_bytes()).expect("Could not write.");
 
     } else{
         // Write to text file
+        let new_line: String = "\n".to_string();
+        let dated_entry = new_line+&dated_entry;
         file.write_all(&dated_entry.as_bytes()).expect("Could not write.");
     }
 
-    
-
-
-
-    println!("{:?}",&dated_entry);
 }
 
 // Quick function to read all lines from a file
@@ -77,4 +80,18 @@ fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
 where P: AsRef<Path>, {
     let file = File::open(filename)?;
     Ok(io::BufReader::new(file).lines())
+}
+
+// Read out all lines
+
+// Match args
+fn match_args(args: &[String] ){
+
+    let first_arg = &args[1];
+
+match first_arg.as_str() {
+    "--help" => println!("{:?}","Help"),
+    "t" => println!("{:?}","Today"),
+    &_ => println!("{:?}","Only god can help you")
+};
 }
