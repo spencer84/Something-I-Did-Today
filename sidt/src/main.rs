@@ -1,4 +1,4 @@
-use std::{clone, env, error::Error, fs::{File, OpenOptions}, io::{self, copy, BufRead, BufReader, Lines, Write}};
+use std::{env, fs::{File, OpenOptions}, io::{self,  BufRead, BufReader, Lines, Write}};
 use chrono::prelude::*;
 use std::path::Path;
 
@@ -16,15 +16,15 @@ fn main(){
 
     let dated_entry: String =  formatted_date.clone() + " " + &entry;
 
-    let path: &str = "journal.txt";
+    let path: &str = "/Users/samspencer/Documents/Rust/sidt/sidt/sidt/journal.txt";
 
     // Match args
 
-    let first_arg = &args[1];
+    let first_arg: &String = &args[1];
 
     // Read from the existing text file
     // TODO: Handle if file doesn't exist (set up path for new file)
-    let lines_vec = read_lines(path);
+    let lines_vec: Vec<String> = read_lines(path);
 
     match first_arg.as_str() {
         "--help" => println!("{:?}","Help"),
@@ -49,20 +49,16 @@ fn main(){
     println!("{:?}",&last_line_array);
     
 
-    // for line in lines{
-    //     println!("{:?}",line.unwrap());
-    // }
-
 
 
     let last_date:&str  = last_line_array.next().unwrap();
     println!("{:?}",&last_date);
 
-    // How to handle if two entries on the same day?
+    // Handle if two entries on the same day
     // If last_date and formatted_date match, then get the previous entry and add to it (remove the new line)
 
     if last_date == formatted_date {
-        // Get previous entry and remove suffix
+
 
         // Combine previous entry and current entry
         let latest_entry = format!(" {entry}");
@@ -95,18 +91,5 @@ fn print_lines(lines: &Vec<String>) {
     for line in lines {
         println!("{}",&line)
     }
-}
-
-
-// Match args
-fn match_args(args: &[String] ){
-
-    let first_arg = &args[1];
-
-match first_arg.as_str() {
-    "--help" => println!("{:?}","Help"),
-    "t" => println!("{:?}","Today"),
-    &_ => println!("{:?}","Only god can help you")
-};
 }
 
