@@ -20,7 +20,18 @@ fn main(){
 
     // Match args
 
-    match_args(&args);
+    let first_arg = &args[1];
+
+    // Read from the existing text file
+    // TODO: Handle if file doesn't exist (set up path for new file)
+    let lines_vec = read_lines(path);
+
+    match first_arg.as_str() {
+        "--help" => println!("{:?}","Help"),
+        "t" => println!("{:?}","Today"),
+        "r" => print_lines(&lines_vec),
+        &_ => println!("{:?}","Only god can help you")
+    };
 
     // Open journal file
 
@@ -29,25 +40,14 @@ fn main(){
     .append(true)
     .open(path)
     .unwrap();
-
-
     
-    let Ok(lines) = read_lines(&path)
-    else {
-        println!("Cannot read file!");
-        panic!()
-    };
 
-    // Convert lines into a vector
-    let mut lines_vec: Vec<String> = lines.into_iter().filter_map(|x| x.ok() ).collect();
 
     // Identify last line
     let last_line = &lines_vec.last().unwrap();
     let mut last_line_array:std::str::Split<&str>  = last_line.split(" ");
     println!("{:?}",&last_line_array);
     
-    // Print out all lines
-    print_lines(&lines_vec);
 
     // for line in lines{
     //     println!("{:?}",line.unwrap());
@@ -83,10 +83,11 @@ fn main(){
 }
 
 // Quick function to read all lines from a file
-fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
+fn read_lines<P>(filename: P) -> Vec<String>
 where P: AsRef<Path>, {
-    let file = File::open(filename)?;
-    Ok(io::BufReader::new(file).lines())
+    let file = File::open(filename);
+    let lines = io::BufReader::new(file.unwrap()).lines();
+    lines.into_iter().filter_map(|x| x.ok() ).collect()
 }
 
 // Print out all lines
@@ -108,3 +109,4 @@ match first_arg.as_str() {
     &_ => println!("{:?}","Only god can help you")
 };
 }
+
