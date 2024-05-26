@@ -6,16 +6,6 @@ fn main(){
     let args: Vec<String> = env::args().collect();
     println!("{:?}",args);
 
-    let text: &[String] = &args[1..];
-
-    let entry: String = text.join(" ");
-
-    let local_date: DateTime<Local> = Local::now();
-
-    let formatted_date: String = local_date.format("%Y-%m-%d").to_string();
-
-    let dated_entry: String =  formatted_date.clone() + " " + &entry;
-
     let path: &str = "/Users/samspencer/Documents/Rust/sidt/sidt/sidt/journal.txt";
 
     // Match args
@@ -30,51 +20,10 @@ fn main(){
         "--help" => println!("{:?}","Help"),
         "t" => println!("{:?}","Today"),
         "r" => print_lines(&lines_vec),
-        &_ => println!("{:?}","Only god can help you")
+        &_ => write_lines(path,args, lines_vec)
     };
 
-    // Open journal file
-
-    let mut file = OpenOptions::new()
-    .write(true)
-    .append(true)
-    .open(path)
-    .unwrap();
-    
-
-
-    // Identify last line
-    let last_line = &lines_vec.last().unwrap();
-    let mut last_line_array:std::str::Split<&str>  = last_line.split(" ");
-    println!("{:?}",&last_line_array);
-    
-
-
-
-    let last_date:&str  = last_line_array.next().unwrap();
-    println!("{:?}",&last_date);
-
-    // Handle if two entries on the same day
-    // If last_date and formatted_date match, then get the previous entry and add to it (remove the new line)
-
-    if last_date == formatted_date {
-
-
-        // Combine previous entry and current entry
-        let latest_entry = format!(" {entry}");
-        // Add the full entry
-        //file.write_all(&latest_entry.as_bytes()).expect("Could not write.");
-        // Getting close. The problem now is that we need to overwite the previous entry
-
-        // Combine prev
-        file.write_all(&latest_entry.as_bytes()).expect("Could not write.");
-
-    } else{
-        // Write to text file
-        let new_line: String = "\n".to_string();
-        let dated_entry = new_line+&dated_entry;
-        file.write_all(&dated_entry.as_bytes()).expect("Could not write.");
-    }
+   
 
 }
 
@@ -91,5 +40,60 @@ fn print_lines(lines: &Vec<String>) {
     for line in lines {
         println!("{}",&line)
     }
+}
+
+// Write entry to file
+fn write_lines(path: &str, args:Vec<String>, lines_vec: Vec<String>){
+ 
+ // Open journal file
+ let mut file = OpenOptions::new()
+ .write(true)
+ .append(true)
+ .open(path)
+ .unwrap();
+ 
+ let text: &[String] = &args[1..];
+
+ let entry: String = text.join(" ");
+
+ let local_date: DateTime<Local> = Local::now();
+
+ let formatted_date: String = local_date.format("%Y-%m-%d").to_string();
+
+ let dated_entry: String =  formatted_date.clone() + " " + &entry;
+
+ // Identify last line
+ let last_line = &lines_vec.last().unwrap();
+ let mut last_line_array:std::str::Split<&str>  = last_line.split(" ");
+ println!("{:?}",&last_line_array);
+ 
+
+
+
+ let last_date:&str  = last_line_array.next().unwrap();
+ println!("{:?}",&last_date);
+
+ // Handle if two entries on the same day
+ // If last_date and formatted_date match, then get the previous entry and add to it (remove the new line)
+
+ if last_date == formatted_date {
+
+
+     // Combine previous entry and current entry
+     let latest_entry = format!(" {entry}");
+     // Add the full entry
+     //file.write_all(&latest_entry.as_bytes()).expect("Could not write.");
+     // Getting close. The problem now is that we need to overwite the previous entry
+
+     // Combine prev
+     file.write_all(&latest_entry.as_bytes()).expect("Could not write.");
+
+ } else{
+     // Write to text file
+     let new_line: String = "\n".to_string();
+     let dated_entry = new_line+&dated_entry;
+     file.write_all(&dated_entry.as_bytes()).expect("Could not write.");
+ }
+
 }
 
