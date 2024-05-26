@@ -1,4 +1,4 @@
-use std::{env, fs::{File, OpenOptions}, io::{self, BufRead, Write}};
+use std::{clone, env, error::Error, fs::{File, OpenOptions}, io::{self, copy, BufRead, BufReader, Lines, Write}};
 use chrono::prelude::*;
 use std::path::Path;
 
@@ -29,6 +29,8 @@ fn main(){
     .append(true)
     .open(path)
     .unwrap();
+
+
     
     let Ok(lines) = read_lines(&path)
     else {
@@ -36,17 +38,22 @@ fn main(){
         panic!()
     };
 
-  
+    // Convert lines into a vector
+    let mut lines_vec: Vec<String> = lines.into_iter().filter_map(|x| x.ok() ).collect();
+
+    // Identify last line
+    let last_line = &lines_vec.last().unwrap();
+    let mut last_line_array:std::str::Split<&str>  = last_line.split(" ");
+    println!("{:?}",&last_line_array);
+    
     // Print out all lines
-    // TODO: Add a command for reading all lines
+    print_lines(&lines_vec);
 
     // for line in lines{
     //     println!("{:?}",line.unwrap());
     // }
 
-    let last_line = lines.last().unwrap().unwrap();
-    let mut last_line_array:std::str::Split<&str>  = last_line.split(" ");
-    println!("{:?}",&last_line_array);
+
 
     let last_date:&str  = last_line_array.next().unwrap();
     println!("{:?}",&last_date);
@@ -82,7 +89,13 @@ where P: AsRef<Path>, {
     Ok(io::BufReader::new(file).lines())
 }
 
-// Read out all lines
+// Print out all lines
+fn print_lines(lines: &Vec<String>) {  
+    for line in lines {
+        println!("{}",&line)
+    }
+}
+
 
 // Match args
 fn match_args(args: &[String] ){
