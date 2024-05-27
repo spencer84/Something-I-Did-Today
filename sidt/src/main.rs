@@ -1,4 +1,4 @@
-use std::{env, fs::{File, OpenOptions}, io::{self,  BufRead, BufReader, Lines, Write}};
+use std::{env, fs::{File, OpenOptions}, io::{self,  BufRead, BufReader, Lines, Write}, num::ParseIntError};
 use chrono::prelude::*;
 use std::path::Path;
 
@@ -19,7 +19,7 @@ fn main(){
     match first_arg.as_str() {
         "--help" => println!("{:?}","Help"),
         "t" => println!("{:?}","Today"),
-        "r" => print_lines(&lines_vec),
+        "r" => print_lines(&lines_vec, args),
         &_ => write_lines(path,args, lines_vec)
     };
 
@@ -35,11 +35,32 @@ where P: AsRef<Path>, {
     lines.into_iter().filter_map(|x| x.ok() ).collect()
 }
 
-// Print out all lines
-fn print_lines(lines: &Vec<String>) {  
-    for line in lines {
-        println!("{}",&line)
+// Print out lines 
+fn print_lines(lines: &Vec<String>, args: Vec<String>) { 
+    
+    // Try to extract additional argument to identify number of lines to print
+    if args.len() > 2 {
+        let lines_to_print: Result<usize, ParseIntError> = args[2].trim().parse();
+        if lines_to_print.is_ok() {
+            let number = lines_to_print.unwrap();
+            let selected_lines = lines.iter().rev().take(number);
+            for line in selected_lines {
+                println!("{}",line)
+            }
+        }
+        else {
+            println!("{}","Read argument must be numeric value. E.g. r 5 to read the last 5 lines.")
+        }
+
+    } 
+    // Otherwise just print all lines
+    
+    else{
+        for line in lines {
+            println!("{}",&line)
+        }
     }
+
 }
 
 // Write entry to file
