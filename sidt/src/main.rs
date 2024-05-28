@@ -86,13 +86,8 @@ fn write_lines(path: &str, args:Vec<String>, lines_vec: Vec<String>){
  // Identify last line
  let last_line = &lines_vec.last().unwrap();
  let mut last_line_array:std::str::Split<&str>  = last_line.split(" ");
- println!("{:?}",&last_line_array);
- 
-
-
 
  let last_date:&str  = last_line_array.next().unwrap();
- println!("{:?}",&last_date);
 
  // Handle if two entries on the same day
  // If last_date and formatted_date match, then get the previous entry and add to it (remove the new line)
