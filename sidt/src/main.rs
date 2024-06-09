@@ -1,4 +1,4 @@
-use std::{env, fs::{File, OpenOptions}, io::{self,  BufRead, BufReader, Lines, Write}, num::ParseIntError};
+use std::{env, fs::{File, OpenOptions}, io::{self,  BufRead, BufReader, Lines, Write}, num::ParseIntError, char};
 use chrono::prelude::*;
 use std::path::Path;
 
@@ -113,3 +113,30 @@ fn write_lines(path: &str, args:Vec<String>, lines_vec: Vec<String>){
 
 }
 
+// Try to get a date from the first argument. If first arg is not numeric/date type, then use the current date
+fn get_date(arg: &str) -> String
+    {
+        let date: String = arg.to_string();
+        if contains_numbers(date){
+            if contains_separators(String){
+                let split_date = date.split("-");
+            }
+        }
+        else{
+            // Get today's date
+        }
+
+        date
+    }
+
+fn contains_numbers(string: String) -> bool
+{
+    for num in 0..10{
+        let numeric_char: char = char::from_digit(num as u32,10).unwrap();
+        if string.contains(numeric_char){
+            return true
+        }
+    }
+    return false
+        
+}
