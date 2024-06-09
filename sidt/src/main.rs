@@ -129,6 +129,7 @@ fn get_date(arg: &str) -> String
         date
     }
 
+    // Evaluate if the input string has a numeric input
 fn contains_numbers(string: String) -> bool
 {
     for num in 0..10{
@@ -138,5 +139,31 @@ fn contains_numbers(string: String) -> bool
         }
     }
     return false
-        
+}
+
+// Try to identify the separator used
+fn get_seperator(string: String) -> Option<String>{
+    if string.contains("\\"){
+        let sep = "\\".to_string();
+        return Some(sep)
+    }
+    if string.contains("/"){
+        let sep = "/".to_string();
+        return Some(sep)
+    }
+    if string.contains("-"){
+        let sep = "-".to_string();
+        return Some(sep)
+    }
+    if string.contains("."){
+        let sep = ".".to_string();
+        return Some(sep)
+    }
+    if string.contains("|"){
+        let sep = "|".to_string();
+        return Some(sep)
+    }
+    else {
+        return None
+    }
 }
