@@ -118,15 +118,19 @@ fn get_date(arg: &str) -> String
     {
         let date: String = arg.to_string();
         if contains_numbers(date){
-            if contains_separators(String){
-                let split_date = date.split("-");
-            }
+            let formatted_date: String;
+            let seperator_option = get_seperator(date);
+            
+            let numeric_string = match seperator_option {
+                Some(String) => &date.to_string().split(seperator_option.unwrap()).collect(),
+                None => &date.to_string()
+            };
         }
         else{
             // Get today's date
         }
 
-        date
+        formatted_date
     }
 
     // Evaluate if the input string has a numeric input
@@ -142,28 +146,34 @@ fn contains_numbers(string: String) -> bool
 }
 
 // Try to identify the separator used
-fn get_seperator(string: String) -> Option<String>{
+fn get_seperator(string: String) -> Option<char>{
     if string.contains("\\"){
         let sep = "\\".to_string();
-        return Some(sep)
+        let character:Vec<char> = sep.chars().collect();
+        return Some(character[0])
     }
     if string.contains("/"){
         let sep = "/".to_string();
-        return Some(sep)
+        let character:Vec<char> = sep.chars().collect();
+        return Some(character[0])
     }
     if string.contains("-"){
         let sep = "-".to_string();
-        return Some(sep)
+        let character:Vec<char> = sep.chars().collect();
+        return Some(character[0])
     }
     if string.contains("."){
         let sep = ".".to_string();
-        return Some(sep)
+        let character:Vec<char> = sep.chars().collect();
+        return Some(character[0])
     }
     if string.contains("|"){
         let sep = "|".to_string();
-        return Some(sep)
+        let character:Vec<char> = sep.chars().collect();
+        return Some(character[0])
     }
     else {
         return None
     }
+
 }
