@@ -1,3 +1,4 @@
+use core::num;
 use std::{env, fs::{File, OpenOptions}, io::{self,  BufRead, BufReader, Lines, Write}, num::ParseIntError, char};
 use chrono::prelude::*;
 use std::path::Path;
@@ -120,11 +121,14 @@ fn get_date(arg: &str) -> String
         if contains_numbers(date){
             let formatted_date: String;
             let seperator_option = get_seperator(date);
-            
+            // If there is a separator, split the string and re-join
             let numeric_string = match seperator_option {
                 Some(String) => &date.to_string().split(seperator_option.unwrap()).collect(),
+                // Otherwise just use the numeric string
                 None => &date.to_string()
             };
+            formatted_date = parse_numeric_string(numeric_string);
+
         }
         else{
             // Get today's date
@@ -175,5 +179,17 @@ fn get_seperator(string: String) -> Option<char>{
     else {
         return None
     }
+
+}
+
+// Read a date string left to right--Accepts the following formats:
+// D, DD, DDM, DDMM, DDMMYY, DDMMYYYY
+fn parse_numeric_string(numeric_string: &String){
+    let size = numeric_string.len();
+    if size == 2 OR size == 1 {
+        // Cast to int
+        let day = numeric_string.
+        // Check if between 1 - (current month days)
+        }
 
 }
