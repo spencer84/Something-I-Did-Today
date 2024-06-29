@@ -1,5 +1,5 @@
 use core::num;
-use std::{env, fs::{File, OpenOptions}, io::{self,  BufRead, BufReader, Lines, Write}, num::ParseIntError, char};
+use std::{arch::aarch64::int32x2_t, char, env, fs::{File, OpenOptions}, io::{self,  BufRead, BufReader, Lines, Write}, num::ParseIntError};
 use chrono::prelude::*;
 use std::path::Path;
 
@@ -119,15 +119,19 @@ fn get_date(arg: &str) -> String
     {
         let date: String = arg.to_string();
         if contains_numbers(date){
-            let formatted_date: String;
+            let parsed_date: Option<String>;
             let seperator_option = get_seperator(date);
             // If there is a separator, split the string and re-join
-            let numeric_string = match seperator_option {
+            let numeric_string: &String = match seperator_option {
                 Some(String) => &date.to_string().split(seperator_option.unwrap()).collect(),
                 // Otherwise just use the numeric string
                 None => &date.to_string()
             };
-            formatted_date = parse_numeric_string(numeric_string);
+            parsed_date = parse_numeric_string(numeric_string);
+
+            // if parsed date has a String value, return that after formatting
+
+            // Otherwise return today's date
 
         }
         else{
@@ -184,12 +188,90 @@ fn get_seperator(string: String) -> Option<char>{
 
 // Read a date string left to right--Accepts the following formats:
 // D, DD, DDM, DDMM, DDMMYY, DDMMYYYY
-fn parse_numeric_string(numeric_string: &String){
+fn parse_numeric_string(numeric_string: &String) -> Option<String> {
+    let local_date: DateTime<Local> = Local::now();
     let size = numeric_string.len();
-    if size == 2 OR size == 1 {
-        // Cast to int
-        let day = numeric_string.
-        // Check if between 1 - (current month days)
-        }
+    if size == 2 || size == 1 {
+        // For single day input, assume current month/year
+        let month = local_date.month();
+        let year = local_date.year();
 
+        let day = match_day_string(numeric_string);
+        match day {
+            Some(day) => return std::option::Option::Some(format_date(day, month, year)),
+            None => return None
+        }
+        }
+    if size > 2 && size < 5 {
+        // For date/month input assume current year (how handle if not yet reached this date?)
+        let year = local_date.year();
+        // Split out the days
+        let day = numeric_string[..2].parse::<i32>().unwrap();
+        let month = numeric_string[2..].parse::<u32>().unwrap();
+    
+    if day_is_valid(day) && month_is_valid(){
+        return std::option::Option::Some(format_date(day, month, year))
+    }
+    else{
+        return None
+    }
+    
+
+
+    }
+    else {
+        return None
+    }
+}
+
+// Try to parse the day portion of the numeric input into a date value
+fn match_day_string(day_string: &String) -> Option<i32>{
+    // Cast to int
+    let day = day_string.parse::<i32>().unwrap();
+    // Check if between 1 - (current month days)
+    if &day <= &31 && &day > & 0{
+        return Some(day)
+    }
+    else{
+        None
+    } 
+}
+
+// Check if day is valid
+fn day_is_valid(day: i32) -> bool{
+    if &day <= &31 && &day > &0 {
+        true
+    }
+    else{
+        false
+    }
+}
+
+// Check if month is valid
+fn month_is_valid(month: u32) -> bool{
+    if &month <= &12 && &month > &0 {
+        true
+    }
+    else{
+        false
+    }
+}
+
+// Try to parse the month portion of the numeric input into a date value
+fn match_month_string(month_string: &String) -> Option<i8>{
+    // Cast to int
+    let month = month_string.parse::<i8>().unwrap();
+    // Check if between 1 - (current month days)
+    if &month <= &12 && &month > &0{
+        return Some(month)
+    }
+    else{
+        None
+    } 
+}
+
+// Return a date string for a numerically described date
+fn format_date(day: i32, month: u32, year: i32) -> String {
+    let date: String = day.to_string() + "-" + &month.to_string() + "-" + &year.to_string();
+    date
 }
