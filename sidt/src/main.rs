@@ -77,9 +77,7 @@ fn write_lines(path: &str, args:Vec<String>, lines_vec: Vec<String>){
 
  let entry: String = text.join(" ");
 
- let local_date: DateTime<Local> = Local::now();
-
- let formatted_date: String = local_date.format("%Y-%m-%d").to_string();
+ let formatted_date: String = get_date(&args[1]);
 
  let dated_entry: String =  formatted_date.clone() + " " + &entry;
 
@@ -116,10 +114,12 @@ fn write_lines(path: &str, args:Vec<String>, lines_vec: Vec<String>){
 // Try to get a date from the first argument. If first arg is not numeric/date type, then use the current date
 fn get_date(arg: &str) -> String
     {
+        println!("The get date function at least is called!");
         let date: String = arg.to_string();
         let parsed_date: String;
-
+        
         if contains_numbers(&date){
+            println!("We have numbers!");
             let seperator_option = get_seperator(&date);
             // If there is a separator, split the string and re-join
             let numeric_string: String = match seperator_option {
@@ -152,6 +152,7 @@ fn contains_numbers(string: &String) -> bool
 {
     for num in 0..10{
         let numeric_char: char = char::from_digit(num as u32,10).unwrap();
+        println!("{},{}",numeric_char,string);
         if string.contains(numeric_char){
             return true
         }
@@ -277,6 +278,21 @@ fn match_month_string(month_string: &String) -> Option<i8>{
 
 // Return a date string for a numerically described date
 fn format_date(day: i32, month: u32, year: i32) -> String {
-    let date: String = day.to_string() + "-" + &month.to_string() + "-" + &year.to_string();
+
+    // Add date padding for month 
+    let padded_month: String = if month < 10 {
+        "0".to_owned()+&month.to_string()
+        } else {
+            month.to_string()
+        };
+
+    // Add date padding for day
+    let padded_day: String = if day < 10 {
+        "0".to_owned()+&day.to_string()
+        } else {
+            day.to_string()
+        };
+
+    let date: String = year.to_string() + "-" + &padded_month + "-" + &padded_day.to_string();
     date
 }
