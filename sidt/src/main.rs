@@ -1,5 +1,4 @@
-use core::num;
-use std::{arch::aarch64::int32x2_t, char, env, fs::{File, OpenOptions}, io::{self,  BufRead, BufReader, Lines, Write}, num::ParseIntError};
+use std::{char, env, fs::{File, OpenOptions}, io::{self,  BufRead, Write}, num::ParseIntError};
 use chrono::prelude::*;
 use std::path::Path;
 
@@ -118,31 +117,38 @@ fn write_lines(path: &str, args:Vec<String>, lines_vec: Vec<String>){
 fn get_date(arg: &str) -> String
     {
         let date: String = arg.to_string();
-        if contains_numbers(date){
-            let parsed_date: Option<String>;
-            let seperator_option = get_seperator(date);
+        let parsed_date: String;
+
+        if contains_numbers(&date){
+            let seperator_option = get_seperator(&date);
             // If there is a separator, split the string and re-join
-            let numeric_string: &String = match seperator_option {
-                Some(String) => &date.to_string().split(seperator_option.unwrap()).collect(),
+            let numeric_string: String = match seperator_option {
+                Some(_) => {
+                    let date_copy = date.clone();
+                    let split_date = date_copy.split(seperator_option.unwrap());
+                    split_date.collect()
+                },
                 // Otherwise just use the numeric string
-                None => &date.to_string()
+                None => date
             };
-            parsed_date = parse_numeric_string(numeric_string);
+            parsed_date = parse_numeric_string(numeric_string).unwrap();
+
 
             // if parsed date has a String value, return that after formatting
 
-            // Otherwise return today's date
+            // Otherwise return today's date 
 
         }
         else{
             // Get today's date
+            parsed_date = Local::now().format("%Y-%m-%d").to_string();
         }
 
-        formatted_date
+        parsed_date
     }
 
     // Evaluate if the input string has a numeric input
-fn contains_numbers(string: String) -> bool
+fn contains_numbers(string: &String) -> bool
 {
     for num in 0..10{
         let numeric_char: char = char::from_digit(num as u32,10).unwrap();
@@ -154,7 +160,7 @@ fn contains_numbers(string: String) -> bool
 }
 
 // Try to identify the separator used
-fn get_seperator(string: String) -> Option<char>{
+fn get_seperator(string: &String) -> Option<char>{
     if string.contains("\\"){
         let sep = "\\".to_string();
         let character:Vec<char> = sep.chars().collect();
@@ -188,14 +194,13 @@ fn get_seperator(string: String) -> Option<char>{
 
 // Read a date string left to right--Accepts the following formats:
 // D, DD, DDM, DDMM, DDMMYY, DDMMYYYY
-fn parse_numeric_string(numeric_string: &String) -> Option<String> {
+fn parse_numeric_string(numeric_string: String) -> Option<String> {
     let local_date: DateTime<Local> = Local::now();
     let size = numeric_string.len();
     if size == 2 || size == 1 {
         // For single day input, assume current month/year
         let month = local_date.month();
         let year = local_date.year();
-
         let day = match_day_string(numeric_string);
         match day {
             Some(day) => return std::option::Option::Some(format_date(day, month, year)),
@@ -209,7 +214,7 @@ fn parse_numeric_string(numeric_string: &String) -> Option<String> {
         let day = numeric_string[..2].parse::<i32>().unwrap();
         let month = numeric_string[2..].parse::<u32>().unwrap();
     
-    if day_is_valid(day) && month_is_valid(){
+    if day_is_valid(day) && month_is_valid(month){
         return std::option::Option::Some(format_date(day, month, year))
     }
     else{
@@ -225,7 +230,7 @@ fn parse_numeric_string(numeric_string: &String) -> Option<String> {
 }
 
 // Try to parse the day portion of the numeric input into a date value
-fn match_day_string(day_string: &String) -> Option<i32>{
+fn match_day_string(day_string: String) -> Option<i32>{
     // Cast to int
     let day = day_string.parse::<i32>().unwrap();
     // Check if between 1 - (current month days)
