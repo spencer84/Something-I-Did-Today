@@ -73,11 +73,34 @@ fn write_lines(path: &str, args:Vec<String>, lines_vec: Vec<String>){
  .open(path)
  .unwrap();
  
- let text: &[String] = &args[1..];
+
+
+ let attempt_date_extract: Option<String> = get_date(&args[1]);
+
+ let journal_index;
+
+ if attempt_date_extract.is_some(){
+    journal_index = 2;
+ }
+ else {
+    journal_index = 1;
+ }
+
+ let text: &[String] = &args[journal_index..];
 
  let entry: String = text.join(" ");
 
- let formatted_date: String = get_date(&args[1]);
+ let formatted_date: String = match attempt_date_extract {
+    Some(date) => date,
+    // Get today's date
+    None => Local::now().format("%Y-%m-%d").to_string()
+ };
+
+ // Define which argument index to begin recording journal input from (whether date arg is used and can be skipped)
+
+
+
+ // TODO: If first arg is successfully parsed as a date value, then skip that arg when writing content to file 
 
  let dated_entry: String =  formatted_date.clone() + " " + &entry;
 
@@ -112,14 +135,13 @@ fn write_lines(path: &str, args:Vec<String>, lines_vec: Vec<String>){
 }
 
 // Try to get a date from the first argument. If first arg is not numeric/date type, then use the current date
-fn get_date(arg: &str) -> String
+fn get_date(arg: &str) -> Option<String>
     {
         println!("The get date function at least is called!");
         let date: String = arg.to_string();
         let parsed_date: String;
         
         if contains_numbers(&date){
-            println!("We have numbers!");
             let seperator_option = get_seperator(&date);
             // If there is a separator, split the string and re-join
             let numeric_string: String = match seperator_option {
@@ -132,6 +154,7 @@ fn get_date(arg: &str) -> String
                 None => date
             };
             parsed_date = parse_numeric_string(numeric_string).unwrap();
+            return Some(parsed_date)
 
 
             // if parsed date has a String value, return that after formatting
@@ -140,11 +163,9 @@ fn get_date(arg: &str) -> String
 
         }
         else{
-            // Get today's date
-            parsed_date = Local::now().format("%Y-%m-%d").to_string();
+            None
         }
 
-        parsed_date
     }
 
     // Evaluate if the input string has a numeric input
@@ -152,7 +173,6 @@ fn contains_numbers(string: &String) -> bool
 {
     for num in 0..10{
         let numeric_char: char = char::from_digit(num as u32,10).unwrap();
-        println!("{},{}",numeric_char,string);
         if string.contains(numeric_char){
             return true
         }
@@ -225,6 +245,11 @@ fn parse_numeric_string(numeric_string: String) -> Option<String> {
 
 
     }
+
+    // TODO: Handle larger inputs
+    // TODO: Catch inputs of different date patterns
+
+
     else {
         return None
     }
