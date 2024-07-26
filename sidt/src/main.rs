@@ -153,16 +153,13 @@ fn get_date(arg: &str) -> Option<String>
                 // Otherwise just use the numeric string
                 None => date
             };
+
+            // If parsed date has a String value, return that after formatting
             parsed_date = parse_numeric_string(numeric_string);
             
             return parsed_date
-
-
-            // if parsed date has a String value, return that after formatting
-
-            // Otherwise return today's date 
-
         }
+
         else{
             None
         }
@@ -246,11 +243,10 @@ fn parse_numeric_string(numeric_string: String) -> Option<String> {
     // DDMMYY
     if size == 6 {
         let day = numeric_string[..2].parse::<i32>().unwrap();
-        let month = numeric_string[2..5].parse::<u32>().unwrap();
-        let year = numeric_string[5..].parse::<i32>().unwrap();
-
+        let month = numeric_string[2..4].parse::<u32>().unwrap();
+        let year = numeric_string[4..].parse::<i32>().unwrap();
         if day_is_valid(day) && month_is_valid(month) && year_is_valid(year) {
-            return std::option::Option::Some(format_date(day, month, year))
+            return std::option::Option::Some(format_date(day, month, year+2000))
         }
         else{
             return None
@@ -258,10 +254,10 @@ fn parse_numeric_string(numeric_string: String) -> Option<String> {
     }
     // DDMMYYYY
     if size == 8 {
+        println!("Made it to the date size 8");
         let day = numeric_string[..2].parse::<i32>().unwrap();
-        let month = numeric_string[2..5].parse::<u32>().unwrap();
+        let month = numeric_string[2..4].parse::<u32>().unwrap();
         let year = numeric_string[5..].parse::<i32>().unwrap();
-
         if day_is_valid(day) && month_is_valid(month) && year_is_valid(year) {
             return std::option::Option::Some(format_date(day, month, year))
         }
@@ -270,7 +266,6 @@ fn parse_numeric_string(numeric_string: String) -> Option<String> {
         }
     }
 
-    // TODO: Handle larger inputs
     // TODO: Catch inputs of different date patterns
 
 
@@ -322,18 +317,6 @@ fn year_is_valid(year: i32) -> bool{
     else {
         return year <= current_year && year > 2000
     }
-}
-// Try to parse the month portion of the numeric input into a date value
-fn match_month_string(month_string: &String) -> Option<i8>{
-    // Cast to int
-    let month = month_string.parse::<i8>().unwrap();
-    // Check if between 1 - (current month days)
-    if &month <= &12 && &month > &0{
-        return Some(month)
-    }
-    else{
-        None
-    } 
 }
 
 // Return a date string for a numerically described date
