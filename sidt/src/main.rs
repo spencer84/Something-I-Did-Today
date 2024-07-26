@@ -1,3 +1,4 @@
+use core::num;
 use std::{char, env, fs::{File, OpenOptions}, io::{self,  BufRead, Write}, num::ParseIntError};
 use chrono::prelude::*;
 use std::path::Path;
@@ -137,9 +138,8 @@ fn write_lines(path: &str, args:Vec<String>, lines_vec: Vec<String>){
 // Try to get a date from the first argument. If first arg is not numeric/date type, then use the current date
 fn get_date(arg: &str) -> Option<String>
     {
-        println!("The get date function at least is called!");
         let date: String = arg.to_string();
-        let parsed_date: String;
+        let parsed_date: Option<String>;
         
         if contains_numbers(&date){
             let seperator_option = get_seperator(&date);
@@ -153,8 +153,9 @@ fn get_date(arg: &str) -> Option<String>
                 // Otherwise just use the numeric string
                 None => date
             };
-            parsed_date = parse_numeric_string(numeric_string).unwrap();
-            return Some(parsed_date)
+            parsed_date = parse_numeric_string(numeric_string);
+            
+            return parsed_date
 
 
             // if parsed date has a String value, return that after formatting
@@ -241,9 +242,16 @@ fn parse_numeric_string(numeric_string: String) -> Option<String> {
     else{
         return None
     }
-    
+    }
+    // DDMMYY
+    if size == 6 {
+        let day = numeric_string[..2].parse::<i32>().unwrap();
+        let month = numeric_string[2..5].parse::<u32>().unwrap();
+        let year = numeric_string[5..].parse::<i32>().unwrap();
 
+        if day_is_valid(day) && month_is_valid(month) && year_is_valid(year) {
 
+        }
     }
 
     // TODO: Handle larger inputs
@@ -288,6 +296,17 @@ fn month_is_valid(month: u32) -> bool{
     }
 }
 
+// Check if year is valid (this is somewhat subjectve--what if someone wants to record what they did back in 1998; that's valid year...Maybe have an config option for this later?)
+fn year_is_valid(year: i32) -> bool{
+    let local_date: DateTime<Local> = Local::now();
+    let current_year = local_date.year();
+    if year < 100{
+        return year <= current_year-2000 && year > 0
+    }
+    else {
+        return year <= current_year && year > 2000
+    }
+}
 // Try to parse the month portion of the numeric input into a date value
 fn match_month_string(month_string: &String) -> Option<i8>{
     // Cast to int
