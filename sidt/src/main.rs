@@ -250,7 +250,23 @@ fn parse_numeric_string(numeric_string: String) -> Option<String> {
         let year = numeric_string[5..].parse::<i32>().unwrap();
 
         if day_is_valid(day) && month_is_valid(month) && year_is_valid(year) {
+            return std::option::Option::Some(format_date(day, month, year))
+        }
+        else{
+            return None
+        }
+    }
+    // DDMMYYYY
+    if size == 8 {
+        let day = numeric_string[..2].parse::<i32>().unwrap();
+        let month = numeric_string[2..5].parse::<u32>().unwrap();
+        let year = numeric_string[5..].parse::<i32>().unwrap();
 
+        if day_is_valid(day) && month_is_valid(month) && year_is_valid(year) {
+            return std::option::Option::Some(format_date(day, month, year))
+        }
+        else{
+            return None
         }
     }
 
