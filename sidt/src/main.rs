@@ -1,4 +1,3 @@
-use core::num;
 use std::{char, env, fs::{File, OpenOptions}, io::{self,  BufRead, Write}, num::ParseIntError};
 use chrono::prelude::*;
 use std::path::Path;
@@ -8,7 +7,7 @@ fn main(){
     println!("{:?}",args);
 
     let path: &str = "/Users/samspencer/Documents/Rust/sidt/sidt/sidt/journal.txt";
-
+    let connection = sqlite::open(":memory:").unwrap();
     // Match args
 
     let first_arg: &String = &args[1];

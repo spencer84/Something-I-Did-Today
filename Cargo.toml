@@ -11,4 +11,5 @@ path = "sidt/src/main.rs"
 
 [dependencies]
 chrono = "0.4.38"
+sqlite = "0.36.0"
 
