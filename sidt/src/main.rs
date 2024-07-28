@@ -2,13 +2,16 @@ use std::{char, env, fs::{File, OpenOptions}, io::{self,  BufRead, Write}, num::
 use chrono::prelude::*;
 use std::path::Path;
 
+mod db; 
+use crate::db::db::write_entry;
+
 fn main(){
     let args: Vec<String> = env::args().collect();
     println!("{:?}",args);
 
     let path: &str = "/Users/samspencer/Documents/Rust/sidt/sidt/sidt/journal.txt";
-    let connection = sqlite::open(":memory:").unwrap();
     // Match args
+
 
     let first_arg: &String = &args[1];
 
@@ -65,13 +68,14 @@ fn print_lines(lines: &Vec<String>, args: Vec<String>) {
 
 // Write entry to file
 fn write_lines(path: &str, args:Vec<String>, lines_vec: Vec<String>){
- 
- // Open journal file
- let mut file = OpenOptions::new()
- .write(true)
- .append(true)
- .open(path)
- .unwrap();
+
+    
+//  // Open journal file
+//  let mut file = OpenOptions::new()
+//  .write(true)
+//  .append(true)
+//  .open(path)
+//  .unwrap();
  
 
 
@@ -89,6 +93,8 @@ fn write_lines(path: &str, args:Vec<String>, lines_vec: Vec<String>){
  let text: &[String] = &args[journal_index..];
 
  let entry: String = text.join(" ");
+
+ let current_time = Local::now().timestamp();
 
  let formatted_date: String = match attempt_date_extract {
     Some(date) => date,
@@ -110,27 +116,32 @@ fn write_lines(path: &str, args:Vec<String>, lines_vec: Vec<String>){
 
  let last_date:&str  = last_line_array.next().unwrap();
 
+ // For now, just write to DB
+
+ write_entry(formatted_date,entry, current_time, current_time)
+
  // Handle if two entries on the same day
  // If last_date and formatted_date match, then get the previous entry and add to it (remove the new line)
 
- if last_date == formatted_date {
+
+//  if last_date == formatted_date {
 
 
-     // Combine previous entry and current entry
-     let latest_entry = format!(" {entry}");
-     // Add the full entry
-     //file.write_all(&latest_entry.as_bytes()).expect("Could not write.");
-     // Getting close. The problem now is that we need to overwite the previous entry
+//      // Combine previous entry and current entry
+//      let latest_entry = format!(" {entry}");
+//      // Add the full entry
+//      //file.write_all(&latest_entry.as_bytes()).expect("Could not write.");
+//      // Getting close. The problem now is that we need to overwite the previous entry
 
-     // Combine prev
-     file.write_all(&latest_entry.as_bytes()).expect("Could not write.");
+//      // Combine prev
+//      file.write_all(&latest_entry.as_bytes()).expect("Could not write.");
 
- } else{
-     // Write to text file
-     let new_line: String = "\n".to_string();
-     let dated_entry = new_line+&dated_entry;
-     file.write_all(&dated_entry.as_bytes()).expect("Could not write.");
- }
+//  } else{
+//      // Write to text file
+//      let new_line: String = "\n".to_string();
+//      let dated_entry = new_line+&dated_entry;
+//      file.write_all(&dated_entry.as_bytes()).expect("Could not write.");
+//  }
 
 }
 
