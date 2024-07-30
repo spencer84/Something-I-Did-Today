@@ -28,10 +28,10 @@ pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i
     let connection = sqlite::open("journal.db").unwrap();
 
     let query = format!("
-        INSERT INTO entries ({date},{entry},{entry_date},{last_updated})
+        INSERT INTO entries VALUES ('{date}','{entry}','{entry_date}','{last_updated}')
     ");
 
-    connection.execute(query).unwrap();
+    connection.prepare(query).unwrap();
 }
 pub fn read_entry() {
     let connection = sqlite::open("journal.db").unwrap();
@@ -44,7 +44,7 @@ pub fn read_entry() {
 
     use sqlite::State;
 
-    result.bind((1, 50)).unwrap();
+    //result.bind((1, 50)).unwrap();
 
     while let Ok(State::Row) = result.next() {
         let date = result.read::<String, _>("date").unwrap();
@@ -56,6 +56,9 @@ pub fn read_entry() {
         let last_updated = result.read::<String, _>("last_updated").unwrap();
 
         println!("{} {} {} {}", date, entry, entry_date, last_updated);
+
+        println!("Made it here!!");
+
 }
 
 

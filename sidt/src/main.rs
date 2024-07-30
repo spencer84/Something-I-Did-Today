@@ -1,4 +1,4 @@
-use std::{char, env, fs::{File, OpenOptions}, io::{self,  BufRead, Write}, num::ParseIntError};
+use std::{char, env::{self, current_exe}, fs::{File, OpenOptions}, io::{self,  BufRead, Write}, num::ParseIntError};
 use chrono::prelude::*;
 use std::path::Path;
 
@@ -13,8 +13,23 @@ fn main(){
     // Match args
 
 
-    //let first_arg: &String = &args[1];
+    let first_arg: &String = &args[1];
     //create_entry_table();
+
+    let text: &[String] = &args[1..];
+
+    let entry: String = text.join(" ");
+   
+    let current_time = Local::now().timestamp();
+
+    let formatted_date = Local::now().format("%Y-%m-%d").to_string();
+
+    println!("{formatted_date}");
+
+    println!("{entry}");
+
+
+    write_entry(formatted_date, entry, current_time, current_time);
 
     read_entry();
 
