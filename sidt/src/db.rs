@@ -1,9 +1,11 @@
 // Set up Sqlite database if not already configured
 
 pub mod db {
+    use sqlite::Statement;
 
 
-fn create_entry_table() {
+
+pub fn create_entry_table() {
 
     let connection = sqlite::open("journal.db").unwrap();
 
@@ -29,7 +31,36 @@ pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i
         INSERT INTO entries ({date},{entry},{entry_date},{last_updated})
     ");
 
+    connection.execute(query).unwrap();
+}
+pub fn read_entry() {
+    let connection = sqlite::open("journal.db").unwrap();
+
+    let query = format!("
+        SELECT * FROM entries;
+    ");
+
+    let mut result = connection.prepare(query).unwrap();
+
+    use sqlite::State;
+
+    result.bind((1, 50)).unwrap();
+
+    while let Ok(State::Row) = result.next() {
+        let date = result.read::<String, _>("date").unwrap();
+
+        let entry = result.read::<String, _>("entry").unwrap();
+
+        let entry_date = result.read::<String, _>("entry_date").unwrap();
+
+        let last_updated = result.read::<String, _>("last_updated").unwrap();
+
+        println!("{} {} {} {}", date, entry, entry_date, last_updated);
+}
+
+
 
 }
+
 }
 

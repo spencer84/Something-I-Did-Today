@@ -3,7 +3,7 @@ use chrono::prelude::*;
 use std::path::Path;
 
 mod db; 
-use crate::db::db::write_entry;
+use crate::db::db::*;
 
 fn main(){
     let args: Vec<String> = env::args().collect();
@@ -13,30 +13,35 @@ fn main(){
     // Match args
 
 
-    let first_arg: &String = &args[1];
+    //let first_arg: &String = &args[1];
+    //create_entry_table();
+
+    read_entry();
 
     // Read from the existing text file
     // TODO: Handle if file doesn't exist (set up path for new file)
-    let lines_vec: Vec<String> = read_lines(path);
+    // let lines_vec = read_entry();
 
-    match first_arg.as_str() {
-        "--help" => println!("{:?}","Help"),
-        "t" => println!("{:?}","Today"),
-        "r" => print_lines(&lines_vec, args),
-        &_ => write_lines(path,args, lines_vec)
-    };
+    // match first_arg.as_str() {
+    //     "--help" => println!("{:?}","Help"),
+    //     "t" => println!("{:?}","Today"),
+    //     //"r" => print_lines(&lines_vec, args),
+    //     &_ => write_lines(path,args, lines_vec)
+    // };
 
    
 
 }
 
-// Quick function to read all lines from a file
-fn read_lines<P>(filename: P) -> Vec<String>
-where P: AsRef<Path>, {
-    let file = File::open(filename);
-    let lines = io::BufReader::new(file.unwrap()).lines();
-    lines.into_iter().filter_map(|x| x.ok() ).collect()
-}
+// // Quick function to read all lines from a file
+// fn read_lines<P>(filename: P) {
+//     read_entry();
+// }
+// where P: AsRef<Path>, {
+//     let file = File::open(filename);
+//     let lines = io::BufReader::new(file.unwrap()).lines();
+//     lines.into_iter().filter_map(|x| x.ok() ).collect()
+// }
 
 // Print out lines 
 fn print_lines(lines: &Vec<String>, args: Vec<String>) { 
