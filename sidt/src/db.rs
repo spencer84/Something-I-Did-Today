@@ -28,10 +28,9 @@ pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i
     let connection = sqlite::open("journal.db").unwrap();
 
     let query = format!("
-        INSERT INTO entries VALUES ('{date}','{entry}','{entry_date}','{last_updated}')
+        INSERT INTO entries VALUES ('{date}','{entry}','{entry_date}','{last_updated}');
     ");
 
-    connection.prepare(query).unwrap();
 }
 pub fn read_entry() {
     let connection = sqlite::open("journal.db").unwrap();
@@ -61,6 +60,7 @@ pub fn read_entry() {
 
 }
 
+println!("Made it here; finished the while clause");
 
 
 }
