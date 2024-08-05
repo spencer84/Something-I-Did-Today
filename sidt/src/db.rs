@@ -1,11 +1,12 @@
 // Set up Sqlite database if not already configured
 
 pub mod db {
+
     use sqlite::Statement;
 
 
 
-pub fn create_entry_table() {
+pub fn create_entry_table()  {
 
     let connection = sqlite::open("journal.db").unwrap();
 
@@ -20,7 +21,7 @@ pub fn create_entry_table() {
     let query = "
         CREATE TABLE entries (date TEXT, entry TEXT, entry_date INTEGER, last_updated INTEGER);
     ";
-    connection.execute(query).unwrap();
+    let _ = connection.execute(query).unwrap();
 }
 
 pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i64) {
@@ -31,7 +32,18 @@ pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i
         INSERT INTO entries VALUES ('{date}','{entry}','{entry_date}','{last_updated}');
     ");
 
+    let result = connection.execute(query);
+
+    // Handle failure to write to database due to it not existing
+    // TODO: Re-write this to handle more specific error instances.
+
+    match result {
+        Ok(_) => (),
+        Err(_) => create_entry_table()
+    }
 }
+
+
 pub fn read_entry() {
     let connection = sqlite::open("journal.db").unwrap();
 
@@ -55,14 +67,59 @@ pub fn read_entry() {
         let last_updated = result.read::<String, _>("last_updated").unwrap();
 
         println!("{} {} {} {}", date, entry, entry_date, last_updated);
-
-        println!("Made it here!!");
-
+    }
 }
 
-println!("Made it here; finished the while clause");
+pub fn read_selected_entries(rows: usize) {
+    let connection = sqlite::open("journal.db").unwrap();
 
+    let query = format!("
+        SELECT * FROM entries ORDER BY entry_date LIMIT {rows};
+    ");
 
+    let mut result = connection.prepare(query).unwrap();
+
+    use sqlite::State;
+
+    //result.bind((1, 50)).unwrap();
+
+    while let Ok(State::Row) = result.next() {
+        let date = result.read::<String, _>("date").unwrap();
+
+        let entry = result.read::<String, _>("entry").unwrap();
+
+        let entry_date = result.read::<String, _>("entry_date").unwrap();
+
+        let last_updated = result.read::<String, _>("last_updated").unwrap();
+
+        println!("{} {} {} {}", date, entry, entry_date, last_updated);
+    }
+}
+
+pub fn read_all_entries() {
+    let connection = sqlite::open("journal.db").unwrap();
+
+    let query = format!("
+        SELECT * FROM entries ORDER BY entry_date;
+    ");
+
+    let mut result = connection.prepare(query).unwrap();
+
+    use sqlite::State;
+
+    //result.bind((1, 50)).unwrap();
+
+    while let Ok(State::Row) = result.next() {
+        let date = result.read::<String, _>("date").unwrap();
+
+        let entry = result.read::<String, _>("entry").unwrap();
+
+        let entry_date = result.read::<String, _>("entry_date").unwrap();
+
+        let last_updated = result.read::<String, _>("last_updated").unwrap();
+
+        println!("{} {} {} {}", date, entry, entry_date, last_updated);
+    }
 }
 
 }

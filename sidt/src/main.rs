@@ -12,9 +12,7 @@ fn main(){
     let path: &str = "/Users/samspencer/Documents/Rust/sidt/sidt/sidt/journal.txt";
     // Match args
 
-
     let first_arg: &String = &args[1];
-    //create_entry_table();
 
     let text: &[String] = &args[1..];
 
@@ -24,25 +22,22 @@ fn main(){
 
     let formatted_date = Local::now().format("%Y-%m-%d").to_string();
 
-    println!("{formatted_date}");
-
-    println!("{entry}");
-
-
-    write_entry(formatted_date, entry, current_time, current_time);
+    match first_arg.as_str() {
+        "--help" => println!("{:?}","Help"),
+        "t" => println!("{:?}","Today"),
+        "r" => print_lines( args),
+        &_ => write_entry(formatted_date, entry, current_time, current_time)
+        };
 
     read_entry();
+
+    read_selected_entries(1);
 
     // Read from the existing text file
     // TODO: Handle if file doesn't exist (set up path for new file)
     // let lines_vec = read_entry();
 
-    // match first_arg.as_str() {
-    //     "--help" => println!("{:?}","Help"),
-    //     "t" => println!("{:?}","Today"),
-    //     //"r" => print_lines(&lines_vec, args),
-    //     &_ => write_lines(path,args, lines_vec)
-    // };
+
 
    
 
@@ -59,17 +54,15 @@ fn main(){
 // }
 
 // Print out lines 
-fn print_lines(lines: &Vec<String>, args: Vec<String>) { 
+fn print_lines( args: Vec<String>) { 
     
     // Try to extract additional argument to identify number of lines to print
     if args.len() > 2 {
         let lines_to_print: Result<usize, ParseIntError> = args[2].trim().parse();
         if lines_to_print.is_ok() {
-            let number = lines_to_print.unwrap();
-            let selected_lines = lines.iter().rev().take(number);
-            for line in selected_lines {
-                println!("{}",line)
-            }
+            let number  = lines_to_print.unwrap();
+
+            read_selected_entries(number);
         }
         else {
             println!("{}","Read argument must be numeric value. E.g. r 5 to read the last 5 lines.")
@@ -79,9 +72,7 @@ fn print_lines(lines: &Vec<String>, args: Vec<String>) {
     // Otherwise just print all lines
     
     else{
-        for line in lines {
-            println!("{}",&line)
-        }
+        read_all_entries();
     }
 
 }
