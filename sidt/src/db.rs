@@ -74,8 +74,10 @@ pub fn read_selected_entries(rows: usize) {
     let connection = sqlite::open("journal.db").unwrap();
 
     let query = format!("
-        SELECT * FROM entries ORDER BY entry_date LIMIT {rows};
+        SELECT * FROM entries ORDER BY entry_date DESC LIMIT {rows};
     ");
+
+    println!("Query string:{}",query);
 
     let mut result = connection.prepare(query).unwrap();
 
@@ -100,7 +102,7 @@ pub fn read_all_entries() {
     let connection = sqlite::open("journal.db").unwrap();
 
     let query = format!("
-        SELECT * FROM entries ORDER BY entry_date;
+        SELECT * FROM entries ORDER BY entry_date DESC;
     ");
 
     let mut result = connection.prepare(query).unwrap();

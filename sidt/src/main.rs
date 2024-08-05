@@ -29,10 +29,6 @@ fn main(){
         &_ => write_entry(formatted_date, entry, current_time, current_time)
         };
 
-    read_entry();
-
-    read_selected_entries(1);
-
     // Read from the existing text file
     // TODO: Handle if file doesn't exist (set up path for new file)
     // let lines_vec = read_entry();
@@ -61,6 +57,7 @@ fn print_lines( args: Vec<String>) {
         let lines_to_print: Result<usize, ParseIntError> = args[2].trim().parse();
         if lines_to_print.is_ok() {
             let number  = lines_to_print.unwrap();
+            println!("Number of lines to print:{}",number);
 
             read_selected_entries(number);
         }
