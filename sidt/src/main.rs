@@ -9,9 +9,6 @@ fn main(){
     let args: Vec<String> = env::args().collect();
     println!("{:?}",args);
 
-    let path: &str = "/Users/samspencer/Documents/Rust/sidt/sidt/sidt/journal.txt";
-    // Match args
-
     let first_arg: &String = &args[1];
 
     let text: &[String] = &args[1..];
@@ -22,10 +19,22 @@ fn main(){
 
     let formatted_date = Local::now().format("%Y-%m-%d").to_string();
 
+    // Match args
+
     match first_arg.as_str() {
         "--help" => println!("{:?}","Help"),
         "t" => println!("{:?}","Today"),
         "r" => print_lines( args),
+        "l" => read_last_entry(),
+        "y" => {
+            // Format yesterday's date
+            let today = Local::now();
+            // How will this work if it's on the first of the month?
+            let yesterday_day = today.day()-1;
+            let yesterday = Local::now().with_day(yesterday_day).unwrap().format("%Y-%m-%d").to_string();
+            println!("{}",&yesterday);
+            write_entry(yesterday, entry, current_time, current_time); 
+        }
         &_ => write_entry(formatted_date, entry, current_time, current_time)
         };
 

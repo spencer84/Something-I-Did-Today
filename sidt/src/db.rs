@@ -44,30 +44,8 @@ pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i
 }
 
 
-pub fn read_entry() {
-    let connection = sqlite::open("journal.db").unwrap();
-
-    let query = format!("
-        SELECT * FROM entries;
-    ");
-
-    let mut result = connection.prepare(query).unwrap();
-
-    use sqlite::State;
-
-    //result.bind((1, 50)).unwrap();
-
-    while let Ok(State::Row) = result.next() {
-        let date = result.read::<String, _>("date").unwrap();
-
-        let entry = result.read::<String, _>("entry").unwrap();
-
-        let entry_date = result.read::<String, _>("entry_date").unwrap();
-
-        let last_updated = result.read::<String, _>("last_updated").unwrap();
-
-        println!("{} {} {} {}", date, entry, entry_date, last_updated);
-    }
+pub fn read_last_entry() {
+   read_selected_entries(1);
 }
 
 pub fn read_selected_entries(rows: usize) {
@@ -82,8 +60,6 @@ pub fn read_selected_entries(rows: usize) {
     let mut result = connection.prepare(query).unwrap();
 
     use sqlite::State;
-
-    //result.bind((1, 50)).unwrap();
 
     while let Ok(State::Row) = result.next() {
         let date = result.read::<String, _>("date").unwrap();
@@ -108,8 +84,6 @@ pub fn read_all_entries() {
     let mut result = connection.prepare(query).unwrap();
 
     use sqlite::State;
-
-    //result.bind((1, 50)).unwrap();
 
     while let Ok(State::Row) = result.next() {
         let date = result.read::<String, _>("date").unwrap();
