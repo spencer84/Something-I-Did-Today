@@ -1,5 +1,5 @@
 use std::{char, env::{self, current_exe}, fs::{File, OpenOptions}, io::{self,  BufRead, Write}, num::ParseIntError};
-use chrono::prelude::*;
+use chrono::{prelude::*, TimeDelta};
 use std::path::Path;
 
 mod db; 
@@ -28,12 +28,12 @@ fn main(){
         "l" => read_last_entry(),
         "y" => {
             // Format yesterday's date
-            let today = Local::now();
-            // How will this work if it's on the first of the month?
-            let yesterday_day = today.day()-1;
-            let yesterday = Local::now().with_day(yesterday_day).unwrap().format("%Y-%m-%d").to_string();
+            let secs: i64 = -60*60*24;
+            let nanos: u32 = 0;
+            let delta: TimeDelta = TimeDelta::new(secs, nanos).unwrap();
+            let yesterday = Local::now().checked_add_signed(delta).unwrap().format("%Y-%m-%d").to_string();
             println!("{}",&yesterday);
-            write_entry(yesterday, entry, current_time, current_time); 
+            //write_entry(yesterday, entry, current_time, current_time); 
         }
         &_ => write_entry(formatted_date, entry, current_time, current_time)
         };
