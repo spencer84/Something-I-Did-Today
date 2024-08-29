@@ -40,33 +40,30 @@ pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i
     let mut result = connection.prepare(query).unwrap();
 
 
-
     println!("Checking records for date: {}",date);
     let any: Vec<Result<sqlite::Row, sqlite::Error>> = result.iter().collect();
-    println!("Records found for {} : {}",date,any.len());
 
-
-
-    // match result.unwrap().next() {
-    //     Ok(_) => ,
-    //     Err(_) => 
-    // }
+    if any.len() >= 1 {
+        let update_statement = format!("
+        UPDATE entries SET entry = entry || {entry};
+        ");
+    }
 
     // ELSE
 
-//     let insert_statement = format!("
-//     INSERT INTO entries VALUES ('{date}','{entry}','{entry_date}','{last_updated}');
-// ");
+    let insert_statement = format!("
+    INSERT INTO entries VALUES ('{date}','{entry}','{entry_date}','{last_updated}');
+");
 
-//     let result = connection.execute(insert_statement);
+    let result = connection.execute(insert_statement);
 
-//     // Handle failure to write to database due to it not existing
-//     // TODO: Re-write this to handle more specific error instances.
+    // Handle failure to write to database due to it not existing
+    // TODO: Re-write this to handle more specific error instances.
 
-//     match result {
-//         Ok(_) => (),
-//         Err(_) => create_entry_table()
-//     }
+    match result {
+        Ok(_) => (),
+        Err(_) => create_entry_table()
+    }
 }
 
 
