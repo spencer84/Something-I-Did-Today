@@ -48,7 +48,7 @@ fn main(){
             // Try to handle Date arg
             let possible_date = get_date(&first_arg);
     
-            println!("Possible date value: {}",possible_date.as_ref().unwrap());
+            //println!("Possible date value: {}",possible_date.as_ref().unwrap());
 
             let formatted_date = match possible_date {
                 Some(_) => possible_date.unwrap() ,

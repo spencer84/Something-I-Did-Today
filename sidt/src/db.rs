@@ -32,7 +32,7 @@ pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i
 
     // Read db to see if there is an existing entry
 
-    // IF Existing Entry...
+    // If existing entry, simply append to the original entry
 
     let query = format!{"SELECT * from entries where date == '{}';", date};
     println!("Query string:{}",&query);
@@ -43,27 +43,37 @@ pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i
     println!("Checking records for date: {}",date);
     let any: Vec<Result<sqlite::Row, sqlite::Error>> = result.iter().collect();
 
+    println!("Records for date: {}",date);
+
+
     if any.len() >= 1 {
         let update_statement = format!("
-        UPDATE entries SET entry = entry || {entry};
+        UPDATE entries SET entry = entry || ' ' || '{entry}' WHERE date == '{}';
+        ", date);
+
+        let result = connection.execute(update_statement);
+
+    }
+
+
+    else {
+        let insert_statement = format!("
+        INSERT INTO entries VALUES ('{date}','{entry}','{entry_date}','{last_updated}');    
         ");
+    
+        let result = connection.execute(insert_statement);
+    
+        // Handle failure to write to database due to it not existing
+        // TODO: Re-write this to handle more specific error instances.
+    
+        match result {
+            Ok(_) => (),
+            Err(_) => create_entry_table()
+        }
     }
+    
 
-    // ELSE
 
-    let insert_statement = format!("
-    INSERT INTO entries VALUES ('{date}','{entry}','{entry_date}','{last_updated}');
-");
-
-    let result = connection.execute(insert_statement);
-
-    // Handle failure to write to database due to it not existing
-    // TODO: Re-write this to handle more specific error instances.
-
-    match result {
-        Ok(_) => (),
-        Err(_) => create_entry_table()
-    }
 }
 
 
