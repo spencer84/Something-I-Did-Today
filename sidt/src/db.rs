@@ -2,10 +2,6 @@
 
 pub mod db {
 
-    use sqlite::Statement;
-
-
-
 pub fn create_entry_table()  {
 
     let connection = sqlite::open("journal.db").unwrap();
@@ -23,8 +19,6 @@ pub fn create_entry_table()  {
     ";
     let _ = connection.execute(query).unwrap();
 }
-
-// How to handle updates to a given date?
 
 pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i64) {
 
@@ -75,7 +69,6 @@ pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i
 
 
 }
-
 
 pub fn read_last_entry() {
    read_selected_entries(1);
@@ -130,6 +123,19 @@ pub fn read_all_entries() {
         println!("{} {}", date, entry);
     }
 }
+
+pub fn delete_selected_entry(date: String){
+    let connection = sqlite::open("journal.db").unwrap();
+
+    let query = format!("
+    DROP * FROM entries WHERE entry_date == '{}';
+    ", date);
+
+let mut result = connection.prepare(query).unwrap();
+
+}
+
+// pub fn delete_date_range()
 
 }
 

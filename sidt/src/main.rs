@@ -34,6 +34,9 @@ fn main(){
         "t" => println!("{:?}","Today"),
         "r" => print_lines( args),
         "l" => read_last_entry(),
+        "d" => {
+            delete_selected_entry(Local::now().format("%Y-%m-%d").to_string())
+        },
         "y" => {
             // Format yesterday's date
             let secs: i64 = -60*60*24;
