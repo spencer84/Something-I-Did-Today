@@ -24,23 +24,49 @@ pub fn create_entry_table()  {
     let _ = connection.execute(query).unwrap();
 }
 
+// How to handle updates to a given date?
+
 pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i64) {
 
     let connection = sqlite::open("journal.db").unwrap();
 
-    let query = format!("
-        INSERT INTO entries VALUES ('{date}','{entry}','{entry_date}','{last_updated}');
-    ");
+    // Read db to see if there is an existing entry
 
-    let result = connection.execute(query);
+    // IF Existing Entry...
 
-    // Handle failure to write to database due to it not existing
-    // TODO: Re-write this to handle more specific error instances.
+    let query = format!{"SELECT * from entries where date == '{}';", date};
+    println!("Query string:{}",&query);
 
-    match result {
-        Ok(_) => (),
-        Err(_) => create_entry_table()
-    }
+    let mut result = connection.prepare(query).unwrap();
+
+
+
+    println!("Checking records for date: {}",date);
+    let any: Vec<Result<sqlite::Row, sqlite::Error>> = result.iter().collect();
+    println!("Records found for {} : {}",date,any.len());
+
+
+
+    // match result.unwrap().next() {
+    //     Ok(_) => ,
+    //     Err(_) => 
+    // }
+
+    // ELSE
+
+//     let insert_statement = format!("
+//     INSERT INTO entries VALUES ('{date}','{entry}','{entry_date}','{last_updated}');
+// ");
+
+//     let result = connection.execute(insert_statement);
+
+//     // Handle failure to write to database due to it not existing
+//     // TODO: Re-write this to handle more specific error instances.
+
+//     match result {
+//         Ok(_) => (),
+//         Err(_) => create_entry_table()
+//     }
 }
 
 
@@ -66,11 +92,11 @@ pub fn read_selected_entries(rows: usize) {
 
         let entry = result.read::<String, _>("entry").unwrap();
 
-        let entry_date = result.read::<String, _>("entry_date").unwrap();
+       // let entry_date = result.read::<String, _>("entry_date").unwrap();
 
-        let last_updated = result.read::<String, _>("last_updated").unwrap();
+       // let last_updated = result.read::<String, _>("last_updated").unwrap();
 
-        println!("{} {} {} {}", date, entry, entry_date, last_updated);
+        println!("{} {}", date, entry);
     }
 }
 
@@ -90,11 +116,11 @@ pub fn read_all_entries() {
 
         let entry = result.read::<String, _>("entry").unwrap();
 
-        let entry_date = result.read::<String, _>("entry_date").unwrap();
+       // let entry_date = result.read::<String, _>("entry_date").unwrap();
 
-        let last_updated = result.read::<String, _>("last_updated").unwrap();
+        //let last_updated = result.read::<String, _>("last_updated").unwrap();
 
-        println!("{} {} {} {}", date, entry, entry_date, last_updated);
+        println!("{} {}", date, entry);
     }
 }
 

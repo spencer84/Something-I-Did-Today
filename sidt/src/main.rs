@@ -1,6 +1,5 @@
-use std::{char, env::{self, current_exe}, fs::{File, OpenOptions}, io::{self,  BufRead, Write}, num::ParseIntError};
-use chrono::{prelude::*, TimeDelta};
-use std::path::Path;
+use std::{char, env::{self}, num::ParseIntError};
+use chrono::{prelude::*, Months, TimeDelta};
 
 mod db; 
 use crate::db::db::*;
@@ -11,14 +10,23 @@ fn main(){
 
     let first_arg: &String = &args[1];
 
+    // Check if first arg in list of accepted args
+
+    // If so, get second arg
+
+    let arg_list = ["--help","t","r","l","y"];
+
+    // if (arg_list.contains(first_arg)){
+
+    // }
+
     let text: &[String] = &args[1..];
 
     let entry: String = text.join(" ");
+
+    let current_time: i64 = Local::now().timestamp();
+
    
-    let current_time = Local::now().timestamp();
-
-    let formatted_date = Local::now().format("%Y-%m-%d").to_string();
-
     // Match args
 
     match first_arg.as_str() {
@@ -33,9 +41,21 @@ fn main(){
             let delta: TimeDelta = TimeDelta::new(secs, nanos).unwrap();
             let yesterday = Local::now().checked_add_signed(delta).unwrap().format("%Y-%m-%d").to_string();
             println!("{}",&yesterday);
-            //write_entry(yesterday, entry, current_time, current_time); 
+            write_entry(yesterday, entry, current_time, current_time); 
+        },
+        &_ => {
+
+            // Try to handle Date arg
+            let possible_date = get_date(&first_arg);
+    
+            println!("Possible date value: {}",possible_date.as_ref().unwrap());
+
+            let formatted_date = match possible_date {
+                Some(_) => possible_date.unwrap() ,
+                _ => Local::now().format("%Y-%m-%d").to_string()
+            };
+            write_entry(formatted_date, entry, current_time, current_time);
         }
-        &_ => write_entry(formatted_date, entry, current_time, current_time)
         };
 
     // Read from the existing text file
@@ -285,6 +305,13 @@ fn parse_numeric_string(numeric_string: String) -> Option<String> {
         let day = numeric_string[..2].parse::<i32>().unwrap();
         let month = numeric_string[2..4].parse::<u32>().unwrap();
         let year = numeric_string[5..].parse::<i32>().unwrap();
+        if day_is_valid(day) && month_is_valid(month) && year_is_valid(year) {
+            return std::option::Option::Some(format_date(day, month, year))
+        }
+        // YYYYMMDD
+        let day = numeric_string[7..].parse::<i32>().unwrap();
+        let month = numeric_string[4..6].parse::<u32>().unwrap();
+        let year = numeric_string[..4].parse::<i32>().unwrap();
         if day_is_valid(day) && month_is_valid(month) && year_is_valid(year) {
             return std::option::Option::Some(format_date(day, month, year))
         }
