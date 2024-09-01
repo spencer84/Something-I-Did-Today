@@ -127,8 +127,10 @@ pub fn read_all_entries() {
 pub fn delete_selected_entry(date: String){
     let connection = sqlite::open("journal.db").unwrap();
 
+    println!("Deleting data on: {}",date);
+
     let query = format!("
-    DROP * FROM entries WHERE entry_date == '{}';
+    DELETE FROM entries WHERE date == '{}';
     ", date);
 
 let mut result = connection.prepare(query).unwrap();

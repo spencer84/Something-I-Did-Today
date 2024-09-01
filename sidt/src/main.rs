@@ -20,9 +20,7 @@ fn main(){
 
     // }
 
-    let text: &[String] = &args[1..];
 
-    let entry: String = text.join(" ");
 
     let current_time: i64 = Local::now().timestamp();
 
@@ -44,6 +42,11 @@ fn main(){
             let delta: TimeDelta = TimeDelta::new(secs, nanos).unwrap();
             let yesterday = Local::now().checked_add_signed(delta).unwrap().format("%Y-%m-%d").to_string();
             println!("{}",&yesterday);
+
+            let text: &[String] = &args[2..];
+
+            let entry: String = text.join(" ");
+
             write_entry(yesterday, entry, current_time, current_time); 
         },
         &_ => {
@@ -57,6 +60,11 @@ fn main(){
                 Some(_) => possible_date.unwrap() ,
                 _ => Local::now().format("%Y-%m-%d").to_string()
             };
+
+            let text: &[String] = &args[1..];
+
+            let entry: String = text.join(" ");
+
             write_entry(formatted_date, entry, current_time, current_time);
         }
         };
