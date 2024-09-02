@@ -43,7 +43,8 @@ pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i
     if any.len() >= 1 {
         let update_statement = format!("
         UPDATE entries SET entry = entry || ' ' || '{entry}' WHERE date == '{}';
-        ", date);
+        UPDATE entries SET last_updated = '{last_updated}' WHERE date == '{}';
+        ", date, date);
 
         let result = connection.execute(update_statement);
 
