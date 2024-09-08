@@ -46,7 +46,7 @@ pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i
         UPDATE entries SET last_updated = '{last_updated}' WHERE date == '{}';
         ", date, date);
 
-        let result = connection.execute(update_statement);
+        let _ = connection.execute(update_statement);
 
     }
 
@@ -134,7 +134,7 @@ pub fn delete_selected_entry(date: String){
     DELETE FROM entries WHERE date == '{}';
     ", date);
 
-let mut result = connection.prepare(query).unwrap();
+    connection.execute(query).unwrap();
 
 }
 

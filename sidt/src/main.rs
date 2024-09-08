@@ -15,12 +15,32 @@ fn main(){
     // Match args
 
     match first_arg.as_str() {
-        "-h" | "--help" => get_help(),
-        "t" => println!("{:?}","Today"),
+        "-h" | "--help" => {
+            // If arg passed, give specific help for that option
+            get_help()},
         "-r" | "--read" => print_lines( args),
         "-l" | "--last" => read_last_entry(),
-        "d" => {
-            delete_selected_entry(Local::now().format("%Y-%m-%d").to_string())
+        "-d" | "--delete" => {
+            // If there is a valid second arg (i.e. a specific date to be deleted)
+            let second_arg = args.get(2);
+
+            let date: String;
+
+            if second_arg.is_some() {
+                if get_date(&second_arg.unwrap()).is_some() {
+                    date = get_date(&second_arg.unwrap()).unwrap()
+                }
+
+                else {
+                    date = Local::now().format("%Y-%m-%d").to_string();
+                }
+
+            }
+            else {
+                date = Local::now().format("%Y-%m-%d").to_string();
+            }
+            
+            delete_selected_entry(date);
         },
         "-y" | "--yesterday" => {
             // Format yesterday's date
@@ -69,14 +89,6 @@ fn main(){
             write_entry(formatted_date, entry, date_time.timestamp(), current_time);
         }
         };
-
-    // Read from the existing text file
-    // TODO: Handle if file doesn't exist (set up path for new file)
-    // let lines_vec = read_entry();
-
-
-
-   
 
 }
 
