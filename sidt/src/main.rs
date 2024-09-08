@@ -1,26 +1,13 @@
 use std::{char, env::{self}, num::ParseIntError};
-use chrono::{prelude::*, Months, TimeDelta, NaiveDate};
+use chrono::{prelude::*, TimeDelta, NaiveDate};
 
 mod db; 
 use crate::db::db::*;
 
 fn main(){
     let args: Vec<String> = env::args().collect();
-    println!("{:?}",args);
 
     let first_arg: &String = &args[1];
-
-    // Check if first arg in list of accepted args
-
-    // If so, get second arg
-
-    let arg_list = ["--help","t","r","l","y"];
-
-    // if (arg_list.contains(first_arg)){
-
-    // }
-
-
 
     let current_time: i64 = Local::now().timestamp();
 
@@ -28,7 +15,7 @@ fn main(){
     // Match args
 
     match first_arg.as_str() {
-        "-h" | "--help" => println!("{:?}","Help"),
+        "-h" | "--help" => get_help(),
         "t" => println!("{:?}","Today"),
         "-r" | "--read" => print_lines( args),
         "l" => read_last_entry(),
@@ -133,84 +120,6 @@ fn print_lines( args: Vec<String>) {
 
 }
 
-// Write entry to file
-fn write_lines(path: &str, args:Vec<String>, lines_vec: Vec<String>){
-
-    
-//  // Open journal file
-//  let mut file = OpenOptions::new()
-//  .write(true)
-//  .append(true)
-//  .open(path)
-//  .unwrap();
- 
-
-
- let attempt_date_extract: Option<String> = get_date(&args[1]);
-
- let journal_index;
-
- if attempt_date_extract.is_some(){
-    journal_index = 2;
- }
- else {
-    journal_index = 1;
- }
-
- let text: &[String] = &args[journal_index..];
-
- let entry: String = text.join(" ");
-
- let current_time = Local::now().timestamp();
-
- let formatted_date: String = match attempt_date_extract {
-    Some(date) => date,
-    // Get today's date
-    None => Local::now().format("%Y-%m-%d").to_string()
- };
-
- // Define which argument index to begin recording journal input from (whether date arg is used and can be skipped)
-
-
-
- // TODO: If first arg is successfully parsed as a date value, then skip that arg when writing content to file 
-
- let dated_entry: String =  formatted_date.clone() + " " + &entry;
-
- // Identify last line
- let last_line = &lines_vec.last().unwrap();
- let mut last_line_array:std::str::Split<&str>  = last_line.split(" ");
-
- let last_date:&str  = last_line_array.next().unwrap();
-
- // For now, just write to DB
-
- write_entry(formatted_date,entry, current_time, current_time)
-
- // Handle if two entries on the same day
- // If last_date and formatted_date match, then get the previous entry and add to it (remove the new line)
-
-
-//  if last_date == formatted_date {
-
-
-//      // Combine previous entry and current entry
-//      let latest_entry = format!(" {entry}");
-//      // Add the full entry
-//      //file.write_all(&latest_entry.as_bytes()).expect("Could not write.");
-//      // Getting close. The problem now is that we need to overwite the previous entry
-
-//      // Combine prev
-//      file.write_all(&latest_entry.as_bytes()).expect("Could not write.");
-
-//  } else{
-//      // Write to text file
-//      let new_line: String = "\n".to_string();
-//      let dated_entry = new_line+&dated_entry;
-//      file.write_all(&dated_entry.as_bytes()).expect("Could not write.");
-//  }
-
-}
 
 // Try to get a date from the first argument. If first arg is not numeric/date type, then use the current date
 fn get_date(arg: &str) -> Option<String>
