@@ -28,9 +28,9 @@ fn main(){
     // Match args
 
     match first_arg.as_str() {
-        "--help" => println!("{:?}","Help"),
+        "-h" | "--help" => println!("{:?}","Help"),
         "t" => println!("{:?}","Today"),
-        "r" => print_lines( args),
+        "-r" | "--read" => print_lines( args),
         "l" => read_last_entry(),
         "d" => {
             delete_selected_entry(Local::now().format("%Y-%m-%d").to_string())
@@ -115,6 +115,10 @@ fn print_lines( args: Vec<String>) {
 
             read_selected_entries(number);
         }
+        // Handle arg for all records
+        else if args[2].trim() == "a" || args[2].trim() == "all" {
+            read_all_entries();
+        }
         else {
             println!("{}","Read argument must be numeric value. E.g. r 5 to read the last 5 lines.")
         }
@@ -123,7 +127,8 @@ fn print_lines( args: Vec<String>) {
     // Otherwise just print all lines
     
     else{
-        read_all_entries();
+        let number: usize = 5;
+        read_selected_entries(number);
     }
 
 }
@@ -417,4 +422,9 @@ fn format_date(day: i32, month: u32, year: i32) -> String {
 
     let date: String = year.to_string() + "-" + &padded_month + "-" + &padded_day.to_string();
     date
+}
+
+// Return a list of arguments and useful information about how to use the program
+fn get_help() {
+    println!()
 }
