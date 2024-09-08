@@ -71,6 +71,18 @@ pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i
 
 }
 
+pub fn update_entry(date: String, entry: String){
+
+    let connection = sqlite::open("journal.db").unwrap();
+
+    let query = format!("
+        UPDATE entries SET entry = '{entry}' WHERE date == '{date}';
+    ");
+
+    let _ = connection.execute(query);
+
+}
+
 pub fn read_last_entry() {
    read_selected_entries(1);
 }

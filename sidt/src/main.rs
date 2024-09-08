@@ -21,7 +21,7 @@ fn main(){
         "-r" | "--read" => print_lines( args),
         "-l" | "--last" => read_last_entry(),
         "-d" | "--delete" => {
-            // If there is a valid second arg (i.e. a specific date to be deleted)
+            // If there is a valid second arg (i.e. a specific date to be deleted), attempt to parse date
             let second_arg = args.get(2);
 
             let date: String;
@@ -40,7 +40,14 @@ fn main(){
                 date = Local::now().format("%Y-%m-%d").to_string();
             }
             
-            delete_selected_entry(date);
+            // If new entry supplied, update that record instead of full deleting
+            if args.len() > 2 {
+                let entry = args[2..].join(" ");
+                update_entry(date, entry);
+            }
+            else {
+                delete_selected_entry(date);
+            }
         },
         "-y" | "--yesterday" => {
             // Format yesterday's date
