@@ -18,11 +18,11 @@ fn main(){
         "-h" | "--help" => get_help(),
         "t" => println!("{:?}","Today"),
         "-r" | "--read" => print_lines( args),
-        "l" => read_last_entry(),
+        "-l" | "--last" => read_last_entry(),
         "d" => {
             delete_selected_entry(Local::now().format("%Y-%m-%d").to_string())
         },
-        "y" => {
+        "-y" | "--yesterday" => {
             // Format yesterday's date
             let secs: i64 = -60*60*24;
             let nanos: u32 = 0;
@@ -335,5 +335,10 @@ fn format_date(day: i32, month: u32, year: i32) -> String {
 
 // Return a list of arguments and useful information about how to use the program
 fn get_help() {
-    println!()
+    println!("Usage: sidt <entry>");
+    println!("Options: ");
+    println!("-h, --help                Print help");
+    println!("-r, --read <number>       Read last <number> lines (or use a/all for all entries");
+    println!("-y, --yesterday <entry>   Write an entry for yesterday's date");
+    println!("-l, --last                Read last entry");
 }
