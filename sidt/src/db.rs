@@ -150,22 +150,26 @@ pub fn delete_selected_entry(date: String){
 
 // pub fn delete_date_range()
 
-pub fn get_search_results(search_phrase: String) {
+pub fn get_search_results(search_phrase: &String) {
     let connection: sqlite::Connection = sqlite::open("journal.db").unwrap();
 
     let query = format!("
     SELECT entry FROM entries WHERE entry LIKE %'{}'%;
     ", search_phrase);
 
+    connection.execute(query).unwrap();
 
 }
 
-pub fn change_date(old_date: String, new_date: String){
+pub fn change_date(old_date: &String, new_date: &String){
     let connection: sqlite::Connection = sqlite::open("journal.db").unwrap();
 
     let query: String = format!("
     UPDATE entries SET date = '{new_date}' WHERE date == '{old_date}'
     ");
+
+    connection.execute(query).unwrap();
+
 }
 
 }

@@ -20,7 +20,14 @@ fn main(){
             get_help()},
         "-r" | "--read" => print_lines( args),
         "-l" | "--last" => read_last_entry(),
-        "-s" | "--search" => get_search_results(args),
+        "-s" | "--search" => {
+            // 
+            let second_arg = args.get(2);
+            match second_arg {
+                Some(_) => get_search_results(second_arg.unwrap()),
+                None => println!("Search term required...")
+            }
+            },
         "-cd"| "--change-date" => update_date(args),
         "-d" | "--delete" => {
             // If there is a valid second arg (i.e. a specific date to be deleted), attempt to parse date
@@ -372,4 +379,8 @@ fn update_date(args: Vec<String>){
     let old_date: Option<&String> = args.get(2);
 
     let new_date: Option<&String> = args.get(3);
+
+    if old_date.is_some() && new_date.is_some() {
+        change_date(old_date.unwrap(), new_date.unwrap())
+    }
 }
