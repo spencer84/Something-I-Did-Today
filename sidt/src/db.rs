@@ -140,8 +140,6 @@ pub fn read_all_entries() {
 pub fn delete_selected_entry(date: String){
     let connection = sqlite::open("journal.db").unwrap();
 
-    println!("Deleting data on: {}",date);
-
     let query = format!("
     DELETE FROM entries WHERE date == '{}';
     ", date);
@@ -151,6 +149,24 @@ pub fn delete_selected_entry(date: String){
 }
 
 // pub fn delete_date_range()
+
+pub fn get_search_results(search_phrase: String) {
+    let connection: sqlite::Connection = sqlite::open("journal.db").unwrap();
+
+    let query = format!("
+    SELECT entry FROM entries WHERE entry LIKE %'{}'%;
+    ", search_phrase);
+
+
+}
+
+pub fn change_date(old_date: String, new_date: String){
+    let connection: sqlite::Connection = sqlite::open("journal.db").unwrap();
+
+    let query: String = format!("
+    UPDATE entries SET date = '{new_date}' WHERE date == '{old_date}'
+    ");
+}
 
 }
 

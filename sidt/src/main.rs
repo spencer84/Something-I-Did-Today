@@ -20,6 +20,8 @@ fn main(){
             get_help()},
         "-r" | "--read" => print_lines( args),
         "-l" | "--last" => read_last_entry(),
+        "-s" | "--search" => get_search_results(args),
+        "-cd"| "--change-date" => update_date(args),
         "-d" | "--delete" => {
             // If there is a valid second arg (i.e. a specific date to be deleted), attempt to parse date
             let second_arg = args.get(2);
@@ -356,8 +358,18 @@ fn format_date(day: i32, month: u32, year: i32) -> String {
 fn get_help() {
     println!("Usage: sidt <entry>");
     println!("Options: ");
-    println!("-h, --help                Print help");
-    println!("-r, --read <number>       Read last <number> lines (or use a/all for all entries");
-    println!("-y, --yesterday <entry>   Write an entry for yesterday's date");
-    println!("-l, --last                Read last entry");
+    println!("-h, --help                        Print help");
+    println!("-r, --read <number>               Read last <number> lines (or use a/all for all entries");
+    println!("-y, --yesterday <entry>           Write an entry for yesterday's date");
+    println!("-l, --last                        Read last entry");
+    println!("-cd, --change-date <old> <new>    Change an entry date");
+
+}
+
+fn update_date(args: Vec<String>){
+    // Extract second and third args
+
+    let old_date: Option<&String> = args.get(2);
+
+    let new_date: Option<&String> = args.get(3);
 }
