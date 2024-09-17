@@ -2,7 +2,7 @@
 Something I did today (sidt) is a command-line application designed for a minimalist journaling experience. The idea of the app is to allow users to quickly write about what they have done in a given day. The app will automatically append each entry to a text file with the current date, so all that is needed from the user is a sentance or two about their day. 
 
 ## Installation
-Run ```Cargo install --path .``` from within the directory to build the binary file.
+Run ```cargo install --path .``` from within the directory to build the binary file.
 
 ## Usage
 Writing an entry requires no arguments by default. The application will take the full input as an entry and format the current date.
@@ -34,5 +34,9 @@ Alternatively, all records can be viewed using the *all* argument (or simply *a*
 Read yesterday's entry.  
 Usage: ```sidt -y```
 > 2024-05-23 Went for a coffee in the morning.  
+
+### -s,  --search  
+Search entries for a phrase.  
+Usage: ```sidt -s <phrase>```
 
 
