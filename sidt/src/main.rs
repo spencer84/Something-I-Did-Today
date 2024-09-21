@@ -84,21 +84,25 @@ fn main(){
 
             let formatted_date: String;
 
+            let text: &[String];
+
             match possible_date {
                 Some(_) => {
                     formatted_date = possible_date.unwrap();
                     let naive_date = NaiveDate::parse_from_str(&formatted_date, "%Y-%m-%d").unwrap();
                     let naive_datetime = naive_date.and_time(NaiveTime::default());
                     date_time = Local.from_local_datetime(&naive_datetime).unwrap();
+                    text = &args[2..];
 
                 }
                 _ => {
                     formatted_date = Local::now().format("%Y-%m-%d").to_string();
                     date_time = Local::now();
+                    text = &args[1..];
                 }
             }
 
-            let text: &[String] = &args[1..];
+            
 
             let entry: String = text.join(" ");
 

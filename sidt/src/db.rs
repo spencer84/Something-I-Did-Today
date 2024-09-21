@@ -141,7 +141,7 @@ pub fn delete_selected_entry(date: String){
     let connection = sqlite::open("journal.db").unwrap();
 
     let query = format!("
-    DELETE FROM entries WHERE date == '{}';
+    DELETE * FROM entries WHERE date == '{}';
     ", date);
 
     connection.execute(query).unwrap();
