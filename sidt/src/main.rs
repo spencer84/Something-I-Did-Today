@@ -380,11 +380,29 @@ fn get_help() {
 fn update_date(args: Vec<String>){
     // Extract second and third args
 
-    let old_date: Option<&String> = args.get(2);
+    let old: Option<&String> = args.get(2);
 
-    let new_date: Option<&String> = args.get(3);
+    let new: Option<&String> = args.get(3);
 
-    if old_date.is_some() && new_date.is_some() {
-        change_date(old_date.unwrap(), new_date.unwrap())
+    if old.is_some() && new.is_some() {
+        // Try to get date values from args
+
+        let old_date = get_date(old.unwrap());
+        
+        let new_date = get_date(new.unwrap());
+
+        if old_date.is_some() && new_date.is_some(){
+            // Apply the changes to the db
+            change_date(&old_date.unwrap(), &new_date.unwrap())
+        } 
+        else{
+            println!("Invalid date args")
+
+        }
     }
+    else{
+        println!("Invalid date args")
+    }
+
+
 }
