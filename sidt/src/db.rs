@@ -1,5 +1,4 @@
 // Set up Sqlite database if not already configured
-
 pub mod db {
 
 pub fn create_entry_table()  {
@@ -98,9 +97,8 @@ pub fn read_selected_entries(rows: usize) {
 
     let mut result = connection.prepare(query).unwrap();
 
-    use sqlite::State;
 
-    while let Ok(State::Row) = result.next() {
+    while let Ok(sqlite::State::Row) = result.next() {
         let date = result.read::<String, _>("date").unwrap();
 
         let entry = result.read::<String, _>("entry").unwrap();
@@ -120,21 +118,25 @@ pub fn read_all_entries() {
         SELECT * FROM entries ORDER BY entry_date DESC;
     ");
 
-    let mut result = connection.prepare(query).unwrap();
+    let result = connection.prepare(query);
 
-    use sqlite::State;
+    if result.is_ok(){
+        let mut data = result.unwrap();
 
-    while let Ok(State::Row) = result.next() {
-        let date = result.read::<String, _>("date").unwrap();
-
-        let entry = result.read::<String, _>("entry").unwrap();
-
-       // let entry_date = result.read::<String, _>("entry_date").unwrap();
-
-        //let last_updated = result.read::<String, _>("last_updated").unwrap();
-
-        println!("{} {}", date, entry);
+        while let Ok(sqlite::State::Row) = data.next() {
+            let date = data.read::<String, _>("date").unwrap();
+    
+            let entry = data.read::<String, _>("entry").unwrap();
+    
+           // let entry_date = result.read::<String, _>("entry_date").unwrap();
+    
+            //let last_updated = result.read::<String, _>("last_updated").unwrap();
+    
+            println!("{} {}", date, entry);
+        }
     }
+
+    
 }
 
 pub fn delete_selected_entry(date: String){
@@ -157,12 +159,19 @@ pub fn get_search_results(search_phrase: &String) {
     SELECT entry FROM entries WHERE entry LIKE '%{}%';
     ", search_phrase);
 
-    let result = connection.execute(query);
+    let result = connection.prepare(query);
 
-    match result {
-        Ok(_) => println!("{:?}",result.unwrap()),
-        Err(e) => println!("{}",e.message.unwrap())
 
+    if result.is_ok(){
+        let mut data = result.unwrap();
+
+        while let Ok(sqlite::State::Row) = data.next() {
+            let date = data.read::<String, _>("date").unwrap();
+    
+            let entry = data.read::<String, _>("entry").unwrap();
+    
+            println!("{} {}", date, entry);
+        }
     }
 
 }
