@@ -156,7 +156,7 @@ pub fn get_search_results(search_phrase: &String) {
     let connection: sqlite::Connection = sqlite::open("journal.db").unwrap();
 
     let query = format!("
-    SELECT entry FROM entries WHERE entry LIKE '%{}%';
+    SELECT date, entry FROM entries WHERE entry LIKE '%{}%';
     ", search_phrase);
 
     let result = connection.prepare(query);
