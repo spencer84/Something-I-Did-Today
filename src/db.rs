@@ -1,7 +1,8 @@
 // Set up Sqlite database if not already configured
 pub mod db {
+    use std::env;
 
-pub fn create_entry_table()  {
+    pub fn create_entry_table()  {
 
     let connection = sqlite::open("../journal.db").unwrap();
 
@@ -20,7 +21,8 @@ pub fn create_entry_table()  {
 }
 
 pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i64) {
-
+    let path = env::home_dir().unwrap();
+    println!("Home dir: {:?}", path);
     let connection = sqlite::open("../journal.db").unwrap();
 
     // Read db to see if there is an existing entry
@@ -30,11 +32,14 @@ pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i
     let query = format!{"SELECT * from entries where date == '{}';", date};
     println!("Query string:{}",&query);
 
-    let mut result = connection.prepare(query).unwrap();
-
+    let result = connection.prepare(query);
+    match result {
+        Ok(_) => (),
+        Err(_) => create_entry_table()
+    }
 
     println!("Checking records for date: {}",date);
-    let any: Vec<Result<sqlite::Row, sqlite::Error>> = result.iter().collect();
+    let any: Vec<Result<sqlite::Row, sqlite::Error>> = result.unwrap().iter().collect();
 
     println!("Records for date: {}",date);
 
@@ -55,15 +60,11 @@ pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i
         INSERT INTO entries VALUES ('{date}','{entry}','{entry_date}','{last_updated}');    
         ");
     
-        let result = connection.execute(insert_statement);
+        let _ = connection.execute(insert_statement);
     
         // Handle failure to write to database due to it not existing
         // TODO: Re-write this to handle more specific error instances.
-    
-        match result {
-            Ok(_) => (),
-            Err(_) => create_entry_table()
-        }
+
     }
     
 

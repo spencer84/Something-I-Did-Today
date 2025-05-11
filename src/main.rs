@@ -11,111 +11,117 @@ use crate::db::db::*;
 fn main(){
     let args: Vec<String> = env::args().collect();
 
-    let first_arg: &String = &args[1];
+    if args.len() < 2 {
+        get_help()
+    }
+    else {
+        parse_args(&args)
+    }
 
-    let current_time: i64 = Local::now().timestamp();
+    fn parse_args(args: &[String]){
+        let first_arg: &String = &args[1];
+        let current_time: i64 = Local::now().timestamp();
 
-   
-    // Match args
-
-    match first_arg.as_str() {
-        "-h" | "--help" => {
-            // If arg passed, give specific help for that option
-            get_help()},
-        "-r" | "--read" => print_lines( args),
-        "-l" | "--last" => read_last_entry(),
-        "-s" | "--search" => {
-            // 
-            let second_arg = args.get(2);
-            match second_arg {
-                Some(_) => get_search_results(second_arg.unwrap()),
-                None => println!("Search term required...")
-            }
-            },
-        "-cd"| "--change-date" => update_date(args),
-        "-d" | "--delete" => {
-            // If there is a valid second arg (i.e. a specific date to be deleted), attempt to parse date
-            let second_arg = args.get(2);
-
-            let date: String;
-
-            if second_arg.is_some() {
-                if get_date(&second_arg.unwrap()).is_some() {
-                    date = get_date(&second_arg.unwrap()).unwrap()
+        // Match args
+        match first_arg.as_str() {
+            "-h" | "--help" => {
+                // If arg passed, give specific help for that option
+                get_help()},
+            "-r" | "--read" => print_lines(args.to_vec()),
+            "-l" | "--last" => read_last_entry(),
+            "-s" | "--search" => {
+                //
+                let second_arg = args.get(2);
+                match second_arg {
+                    Some(_) => get_search_results(second_arg.unwrap()),
+                    None => println!("Search term required...")
                 }
+            },
+            "-cd"| "--change-date" => update_date(args.to_vec()),
+            "-d" | "--delete" => {
+                // If there is a valid second arg (i.e. a specific date to be deleted), attempt to parse date
+                let second_arg = args.get(2);
 
+                let date: String;
+
+                if second_arg.is_some() {
+                    if get_date(&second_arg.unwrap()).is_some() {
+                        date = get_date(&second_arg.unwrap()).unwrap()
+                    }
+
+                    else {
+                        date = Local::now().format("%Y-%m-%d").to_string();
+                    }
+                }
                 else {
                     date = Local::now().format("%Y-%m-%d").to_string();
                 }
 
-            }
-            else {
-                date = Local::now().format("%Y-%m-%d").to_string();
-            }
-            
-            // If new entry supplied, update that record instead of full deleting
-            if args.len() > 2 {
-                let entry = args[2..].join(" ");
-                update_entry(date, entry);
-            }
-            else {
-                delete_selected_entry(date);
-            }
-        },
-        "-y" | "--yesterday" => {
-            // Format yesterday's date
-            let secs: i64 = -60*60*24;
-            let nanos: u32 = 0;
-            let delta: TimeDelta = TimeDelta::new(secs, nanos).unwrap();
-            let yesterday = Local::now().checked_add_signed(delta).unwrap();
-            println!("{}",&yesterday);
-
-            let text: &[String] = &args[2..];
-
-            let entry: String = text.join(" ");
-
-            write_entry(yesterday.format("%Y-%m-%d").to_string(), entry, yesterday.timestamp(), current_time); 
-        },
-        "-e" | "--edit" => {
-            let entry = "Edit this entry!";
-            edit_entry(entry.to_string());},
-        &_ => {
-
-            // Try to handle Date arg
-            let possible_date = get_date(&first_arg);
-    
-            //println!("Possible date value: {}",possible_date.as_ref().unwrap());
-
-            // Need a datetime value for the entry_date (Stored as integer value)
-            let date_time: DateTime<Local>;
-
-            let formatted_date: String;
-
-            let text: &[String];
-
-            match possible_date {
-                Some(_) => {
-                    formatted_date = possible_date.unwrap();
-                    let naive_date = NaiveDate::parse_from_str(&formatted_date, "%Y-%m-%d").unwrap();
-                    let naive_datetime = naive_date.and_time(NaiveTime::default());
-                    date_time = Local.from_local_datetime(&naive_datetime).unwrap();
-                    text = &args[2..];
-
+                // If new entry supplied, update that record instead of full deleting
+                if args.len() > 2 {
+                    let entry = args[2..].join(" ");
+                    update_entry(date, entry);
                 }
-                _ => {
-                    formatted_date = Local::now().format("%Y-%m-%d").to_string();
-                    date_time = Local::now();
-                    text = &args[1..];
+                else {
+                    delete_selected_entry(date);
                 }
+            },
+            "-y" | "--yesterday" => {
+                // Format yesterday's date
+                let secs: i64 = -60*60*24;
+                let nanos: u32 = 0;
+                let delta: TimeDelta = TimeDelta::new(secs, nanos).unwrap();
+                let yesterday = Local::now().checked_add_signed(delta).unwrap();
+                println!("{}",&yesterday);
+
+                let text: &[String] = &args[2..];
+
+                let entry: String = text.join(" ");
+
+                write_entry(yesterday.format("%Y-%m-%d").to_string(), entry, yesterday.timestamp(), current_time);
+            },
+            "-e" | "--edit" => {
+                let entry = "Edit this entry!";}
+            //edit_entry(entry.to_string());},
+            &_ => {
+
+                // Try to handle Date arg
+                let possible_date = get_date(&first_arg);
+
+                //println!("Possible date value: {}",possible_date.as_ref().unwrap());
+
+                // Need a datetime value for the entry_date (Stored as integer value)
+                let date_time: DateTime<Local>;
+
+                let formatted_date: String;
+
+                let text: &[String];
+
+                match possible_date {
+                    Some(_) => {
+                        formatted_date = possible_date.unwrap();
+                        let naive_date = NaiveDate::parse_from_str(&formatted_date, "%Y-%m-%d").unwrap();
+                        let naive_datetime = naive_date.and_time(NaiveTime::default());
+                        date_time = Local.from_local_datetime(&naive_datetime).unwrap();
+                        text = &args[2..];
+
+                    }
+                    _ => {
+                        formatted_date = Local::now().format("%Y-%m-%d").to_string();
+                        date_time = Local::now();
+                        text = &args[1..];
+                    }
+                }
+
+
+
+                let entry: String = text.join(" ");
+
+                write_entry(formatted_date, entry, date_time.timestamp(), current_time);
             }
-
-            
-
-            let entry: String = text.join(" ");
-
-            write_entry(formatted_date, entry, date_time.timestamp(), current_time);
-        }
         };
+    }
+
 
 }
 
@@ -414,11 +420,11 @@ fn update_date(args: Vec<String>){
 
 }
 
-fn edit_entry(previous_entry: String) {
-    // Prepopulate the terminal with the previous entry
-    use std::io::Cursor;
-    let cursor = Cursor::new(previous_entry);
-    cursor.consume(previous_entry.len());
-
-
-}
+// fn edit_entry(previous_entry: String) {
+//     // Prepopulate the terminal with the previous entry
+//     use std::io::Cursor;
+//     let cursor = Cursor::new(previous_entry);
+//     cursor.consume(previous_entry.len());
+//
+//
+// }
