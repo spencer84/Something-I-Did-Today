@@ -184,10 +184,10 @@ fn get_date(arg: &str) -> Option<String>
         let parsed_date: Option<String>;
         
         if contains_numbers(&date){
-            let seperator_option = get_seperator(&date);
+            let separator_option = get_separator(&date);
 
             // If there is a separator, split the string and re-join
-            let parsed_date: Option<String> = match seperator_option {
+            let parsed_date: Option<String> = match separator_option {
                 Some(separator) => {
                     let date_copy = date.clone();
                     parse_separated_date(date_copy, separator)
@@ -222,31 +222,26 @@ fn contains_numbers(string: &String) -> bool
 }
 
 // Try to identify the separator used
-fn get_seperator(string: &String) -> Option<char>{
+fn get_separator(string: &String) -> Option<char>{
     if string.contains("\\"){
-        let sep = "\\".to_string();
-        let character:Vec<char> = sep.chars().collect();
-        return Some(character[0])
+        let sep = '\\';
+        return Some(sep)
     }
     if string.contains("/"){
-        let sep = "/".to_string();
-        let character:Vec<char> = sep.chars().collect();
-        return Some(character[0])
+        let sep = '/';
+        return Some(sep)
     }
     if string.contains("-"){
-        let sep = "-".to_string();
-        let character:Vec<char> = sep.chars().collect();
-        return Some(character[0])
+        let sep = '-';
+        return Some(sep)
     }
     if string.contains("."){
-        let sep = ".".to_string();
-        let character:Vec<char> = sep.chars().collect();
-        return Some(character[0])
+        let sep = '.';
+        return Some(sep)
     }
     if string.contains("|"){
-        let sep = "|".to_string();
-        let character:Vec<char> = sep.chars().collect();
-        return Some(character[0])
+        let sep = '|';
+        return Some(sep)
     }
     else {
         return None
@@ -479,6 +474,12 @@ fn update_date(args: Vec<String>){
 #[test]
 fn test_date1(){
     let date = "2025-05-27";
+    assert_eq!("2025-05-27", get_date(date).get_or_insert_default());
+}
+
+#[test]
+fn test_date2(){
+    let date = "2705";
     assert_eq!("2025-05-27", get_date(date).get_or_insert_default());
 }
 
