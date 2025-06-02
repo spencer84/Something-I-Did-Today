@@ -117,7 +117,7 @@ pub fn read_entry(date: Option<String>) -> Result<String, String> {
         Some(date) => {
             let connection = sqlite::open("../journal.db").unwrap();
             let query: String = format!("
-            SELECT entry FROM entries WHERE entry_date == '{}';", date);
+            SELECT entry FROM entries WHERE date == '{}';", date);
             println!("Query string:{}",query);
             let result = connection.prepare(query);
             if (result.is_ok()){

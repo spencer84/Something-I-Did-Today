@@ -87,7 +87,14 @@ fn main(){
                 match second_arg {
                     Some(_) => {let date = get_date(&second_arg.unwrap());
                         let entry = read_entry(date);
-                        println!("Editing this entry: {}",entry.unwrap());
+                        match entry  {
+                            Ok(entry_result) => {
+                                println!("Editing this entry: {}",entry_result);
+                            },
+                            Err(error) => {
+                                println!("Error: {}", error);
+                            }
+                        }
                     },
                     None => {
                         println!("Which entry to edit? Date argument missing...");
