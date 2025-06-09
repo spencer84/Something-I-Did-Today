@@ -11,4 +11,4 @@ name = "sidt"
 [dependencies]
 chrono = "0.4.38"
 sqlite = "0.36.0"
-
+rustyline = "14.0"

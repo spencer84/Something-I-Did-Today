@@ -1,9 +1,7 @@
 use std::{char, env::{self}, io::Cursor, num::ParseIntError};
 use chrono::{prelude::*, TimeDelta, NaiveDate};
-use std::io::{self, Write};
-// use termion::input::TermRead;
-// use termion::event::Key;
-// use termion::raw::IntoRawMode;
+use std::io::{self, Write, stdout, BufWriter};
+use rustyline::DefaultEditor;
 
 mod db; 
 use crate::db::db::*;
@@ -86,10 +84,12 @@ fn main(){
                 let second_arg = args.get(2);
                 match second_arg {
                     Some(_) => {let date = get_date(&second_arg.unwrap());
-                        let entry = read_entry(date);
-                        match entry  {
+                        let entry = read_entry(date.clone()).unwrap();
+                        let mut editor = rustyline::DefaultEditor::new().unwrap();
+                        match editor.readline_with_initial("", (&entry,"")) {
                             Ok(entry_result) => {
-                                println!("Editing this entry: {}",entry_result);
+                                println!("New entry: {}",&entry_result);
+                                update_entry(date.unwrap(), entry_result);
                             },
                             Err(error) => {
                                 println!("Error: {}", error);

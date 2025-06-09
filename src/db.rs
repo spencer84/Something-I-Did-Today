@@ -74,7 +74,7 @@ pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i
 pub fn update_entry(date: String, entry: String){
 
     let connection = sqlite::open("../journal.db").unwrap();
-
+     // TODO Should also update the timestamp
     let query = format!("
         UPDATE entries SET entry = '{entry}' WHERE date == '{date}';
     ");
@@ -120,7 +120,7 @@ pub fn read_entry(date: Option<String>) -> Result<String, String> {
             SELECT entry FROM entries WHERE date == '{}';", date);
             println!("Query string:{}",query);
             let result = connection.prepare(query);
-            if (result.is_ok()){
+            if result.is_ok(){
                 let mut data = result.unwrap();
                 println!("Column names: {:?}", data.column_names().to_vec());
                 if let Ok(sqlite::State::Row) = data.next(){
