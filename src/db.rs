@@ -74,7 +74,6 @@ pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i
 pub fn update_entry(date: String, entry: String, last_updated: i64) {
 
     let connection = sqlite::open("../journal.db").unwrap();
-     // TODO Should also update the timestamp
     let query = format!("
         UPDATE entries SET entry = '{entry}',last_updated = '{last_updated}'  WHERE date == '{date}';
     ");
