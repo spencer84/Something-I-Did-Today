@@ -58,7 +58,7 @@ fn main(){
                 // If new entry supplied, update that record instead of full deleting
                 if args.len() > 2 {
                     let entry = args[2..].join(" ");
-                    update_entry(date, entry);
+                    update_entry(date, entry, current_time);
                 }
                 else {
                     delete_selected_entry(date);
@@ -89,7 +89,7 @@ fn main(){
                         match editor.readline_with_initial("", (&entry,"")) {
                             Ok(entry_result) => {
                                 println!("New entry: {}",&entry_result);
-                                update_entry(date.unwrap(), entry_result);
+                                update_entry(date.unwrap(), entry_result, current_time);
                             },
                             Err(error) => {
                                 println!("Error: {}", error);
