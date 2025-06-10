@@ -142,18 +142,6 @@ fn main(){
 
 
 }
-
-// // Quick function to read all lines from a file
-// fn read_lines<P>(filename: P) {
-//     read_entry();
-// }
-// where P: AsRef<Path>, {
-//     let file = File::open(filename);
-//     let lines = io::BufReader::new(file.unwrap()).lines();
-//     lines.into_iter().filter_map(|x| x.ok() ).collect()
-// }
-
-// Print out lines 
 fn print_lines( args: Vec<String>) { 
     
     // Try to extract additional argument to identify number of lines to print
@@ -336,7 +324,7 @@ fn parse_separated_date(separated_date: String, separator: char) -> Option<Strin
         let month = parts[1].parse::<u32>().unwrap();
         if day_is_valid(day) && month_is_valid(month){
             // Get current year
-            let year = 2025; // TODO Fix this
+            let year = Local::now().year();
             return Some(format_date(day, month, year))
         }
         println!("Invalid date format!"); // TODO do we need this? Or do we log errors at a higher level?

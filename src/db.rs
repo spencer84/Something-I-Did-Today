@@ -93,10 +93,7 @@ pub fn read_selected_entries(rows: usize) -> (){
         SELECT * FROM entries ORDER BY entry_date DESC LIMIT {rows};
     ");
 
-    println!("Query string:{}",query);
-
     let mut result = connection.prepare(query).unwrap();
-
 
     while let Ok(sqlite::State::Row) = result.next() {
         let date = result.read::<String, _>("date").unwrap();
