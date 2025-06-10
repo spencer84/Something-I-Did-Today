@@ -1,9 +1,7 @@
 use std::{char, env::{self}, io::Cursor, num::ParseIntError};
 use chrono::{prelude::*, TimeDelta, NaiveDate};
-use std::io::{self, Write};
-// use termion::input::TermRead;
-// use termion::event::Key;
-// use termion::raw::IntoRawMode;
+use std::io::{self, Write, stdout, BufWriter};
+use rustyline::DefaultEditor;
 
 mod db; 
 use crate::db::db::*;
@@ -60,7 +58,7 @@ fn main(){
                 // If new entry supplied, update that record instead of full deleting
                 if args.len() > 2 {
                     let entry = args[2..].join(" ");
-                    update_entry(date, entry);
+                    update_entry(date, entry, current_time);
                 }
                 else {
                     delete_selected_entry(date);
@@ -81,8 +79,28 @@ fn main(){
                 write_entry(yesterday.format("%Y-%m-%d").to_string(), entry, yesterday.timestamp(), current_time);
             },
             "-e" | "--edit" => {
+                // TODO get previous entry
+                // Try to parse date
+                let second_arg = args.get(2);
+                match second_arg {
+                    Some(_) => {let date = get_date(&second_arg.unwrap());
+                        let entry = read_entry(date.clone()).unwrap();
+                        let mut editor = rustyline::DefaultEditor::new().unwrap();
+                        match editor.readline_with_initial("", (&entry,"")) {
+                            Ok(entry_result) => {
+                                println!("New entry: {}",&entry_result);
+                                update_entry(date.unwrap(), entry_result, current_time);
+                            },
+                            Err(error) => {
+                                println!("Error: {}", error);
+                            }
+                        }
+                    },
+                    None => {
+                        println!("Which entry to edit? Date argument missing...");
+                        }
+                }
                 let entry = "Edit this entry!";}
-            //edit_entry(entry.to_string());},
             &_ => {
 
                 // Try to handle Date arg
@@ -173,22 +191,23 @@ fn get_date(arg: &str) -> Option<String>
         let parsed_date: Option<String>;
         
         if contains_numbers(&date){
-            let seperator_option = get_seperator(&date);
+            let separator_option = get_separator(&date);
+
             // If there is a separator, split the string and re-join
-            let numeric_string: String = match seperator_option {
-                Some(_) => {
+            let parsed_date: Option<String> = match separator_option {
+                Some(separator) => {
                     let date_copy = date.clone();
-                    let split_date = date_copy.split(seperator_option.unwrap());
-                    split_date.collect()
+                    parse_separated_date(date_copy, separator)
                 },
                 // Otherwise just use the numeric string
-                None => date
+                None => {
+                    parse_numeric_string(date)
+                }
             };
 
             // If parsed date has a String value, return that after formatting
-            parsed_date = parse_numeric_string(numeric_string);
-            
-            return parsed_date
+            println!("Parsed date:{}",parsed_date.clone().unwrap());
+            parsed_date
         }
 
         else{
@@ -206,35 +225,30 @@ fn contains_numbers(string: &String) -> bool
             return true
         }
     }
-    return false
+     false
 }
 
 // Try to identify the separator used
-fn get_seperator(string: &String) -> Option<char>{
+fn get_separator(string: &String) -> Option<char>{
     if string.contains("\\"){
-        let sep = "\\".to_string();
-        let character:Vec<char> = sep.chars().collect();
-        return Some(character[0])
+        let sep = '\\';
+        return Some(sep)
     }
     if string.contains("/"){
-        let sep = "/".to_string();
-        let character:Vec<char> = sep.chars().collect();
-        return Some(character[0])
+        let sep = '/';
+        return Some(sep)
     }
     if string.contains("-"){
-        let sep = "-".to_string();
-        let character:Vec<char> = sep.chars().collect();
-        return Some(character[0])
+        let sep = '-';
+        return Some(sep)
     }
     if string.contains("."){
-        let sep = ".".to_string();
-        let character:Vec<char> = sep.chars().collect();
-        return Some(character[0])
+        let sep = '.';
+        return Some(sep)
     }
     if string.contains("|"){
-        let sep = "|".to_string();
-        let character:Vec<char> = sep.chars().collect();
-        return Some(character[0])
+        let sep = '|';
+        return Some(sep)
     }
     else {
         return None
@@ -247,6 +261,7 @@ fn get_seperator(string: &String) -> Option<char>{
 fn parse_numeric_string(numeric_string: String) -> Option<String> {
     let local_date: DateTime<Local> = Local::now();
     let size = numeric_string.len();
+    // Single day input
     if size == 2 || size == 1 {
         // For single day input, assume current month/year
         let month = local_date.month();
@@ -303,13 +318,56 @@ fn parse_numeric_string(numeric_string: String) -> Option<String> {
             return None
         }
     }
-
     // TODO: Catch inputs of different date patterns
 
 
     else {
         return None
     }
+}
+
+fn parse_separated_date(separated_date: String, separator: char) -> Option<String> {
+    println!("Parsing separated date:{}",separated_date);
+    let parts = separated_date.split(separator).collect::<Vec<&str>>();
+    // Handle 2 parts
+    if parts.len() == 2{
+        // Assume day first
+        let day = parts[0].parse::<i32>().unwrap();
+        let month = parts[1].parse::<u32>().unwrap();
+        if day_is_valid(day) && month_is_valid(month){
+            // Get current year
+            let year = 2025; // TODO Fix this
+            return Some(format_date(day, month, year))
+        }
+        println!("Invalid date format!"); // TODO do we need this? Or do we log errors at a higher level?
+        None
+    }
+    // Handle 3 parts
+    else if parts.len() == 3{
+        // Check if YYYY-DD-MM
+        if parts[0].len() == 4{
+            let year = parts[0].parse::<i32>().unwrap();
+            let month = parts[1].parse::<u32>().unwrap();
+            let day = parts[2].parse::<i32>().unwrap();
+            if day_is_valid(day) && month_is_valid(month) && year_is_valid(year){
+                return Some(format_date(day, month, year))
+            }
+            else  {None}
+        }
+        else if parts[0].len() == 2{
+            let day = parts[2].parse::<i32>().unwrap();
+            let month = parts[1].parse::<u32>().unwrap();
+            let year = parts[0].parse::<i32>().unwrap();
+            if day_is_valid(day) && month_is_valid(month) && year_is_valid(year){
+                return Some(format_date(day, month, year))
+            }
+            else  {None}
+        }
+        else { None }
+    }
+    else { None }
+
+
 }
 
 // Try to parse the day portion of the numeric input into a date value
@@ -420,11 +478,29 @@ fn update_date(args: Vec<String>){
 
 }
 
-// fn edit_entry(previous_entry: String) {
-//     // Prepopulate the terminal with the previous entry
-//     use std::io::Cursor;
-//     let cursor = Cursor::new(previous_entry);
-//     cursor.consume(previous_entry.len());
-//
-//
-// }
+#[test]
+fn test_date1(){
+    let date = "2025-05-27";
+    assert_eq!("2025-05-27", get_date(date).get_or_insert_default());
+}
+
+#[test]
+fn test_date2(){
+    let date = "2705";
+    assert_eq!("2025-05-27", get_date(date).get_or_insert_default());
+}
+
+fn edit_entry(previous_entry: Option<String>) -> () {
+    // Check if valid entry date
+    if previous_entry.is_none(){
+        println!("Invalid date argument.")
+    }
+    let connection: sqlite::Connection = sqlite::open("../journal.db").unwrap();
+    // Use db module for reading specific date
+    // Prepopulate the terminal with the previous entry
+    use std::io::Cursor;
+    let cursor = Cursor::new(previous_entry);
+    // cursor.consume(previous_entry.len());
+
+
+}

@@ -39,4 +39,16 @@ Usage: ```sidt -y```
 Search entries for a phrase.  
 Usage: ```sidt -s <phrase>```
 
+### -e <date>, --edit <date>
+Edit a previous entry.
+Usage: ```sidt -e 23052024```
+Terminal will pre-populate the previous entry:
+> 2024-05-24 Today I went for a walk. <Cursor appears here to begin editing>
+
+> 2024-05-24 Today I went for a walk to the park.
+
+A new line will end the entry and update the entry in the database:
+```sidt -r 1```
+> 2024-05-24 Today I went for a walk to the park.
+
 

@@ -71,12 +71,11 @@ pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i
 
 }
 
-pub fn update_entry(date: String, entry: String){
+pub fn update_entry(date: String, entry: String, last_updated: i64) {
 
     let connection = sqlite::open("../journal.db").unwrap();
-
     let query = format!("
-        UPDATE entries SET entry = '{entry}' WHERE date == '{date}';
+        UPDATE entries SET entry = '{entry}',last_updated = '{last_updated}'  WHERE date == '{date}';
     ");
 
     let _ = connection.execute(query);
@@ -87,7 +86,7 @@ pub fn read_last_entry() {
    read_selected_entries(1);
 }
 
-pub fn read_selected_entries(rows: usize) {
+pub fn read_selected_entries(rows: usize) -> (){
     let connection = sqlite::open("../journal.db").unwrap();
 
     let query = format!("
@@ -112,12 +111,39 @@ pub fn read_selected_entries(rows: usize) {
     }
 }
 
-pub fn read_all_entries() {
+pub fn read_entry(date: Option<String>) -> Result<String, String> {
+    match date {
+        Some(date) => {
+            let connection = sqlite::open("../journal.db").unwrap();
+            let query: String = format!("
+            SELECT entry FROM entries WHERE date == '{}';", date);
+            println!("Query string:{}",query);
+            let result = connection.prepare(query);
+            if result.is_ok(){
+                let mut data = result.unwrap();
+                println!("Column names: {:?}", data.column_names().to_vec());
+                if let Ok(sqlite::State::Row) = data.next(){
+                    Ok(data.read::<String, _>("entry").unwrap())
+                }
+                else {
+                    Err(String::from("Entry not found"))
+                }
+
+            }
+            else {
+                Err(String::from("Entry not found"))
+            }
+        },
+        None => {
+            Err("No date specified.").expect("TODO: panic message")
+        }
+    }
+
+}
+    pub fn read_all_entries() {
     let connection = sqlite::open("../journal.db").unwrap();
 
-    let query = format!("
-        SELECT * FROM entries ORDER BY entry_date DESC;
-    ");
+    let query = "SELECT * FROM entries ORDER BY entry_date DESC;";
 
     let result = connection.prepare(query);
 
