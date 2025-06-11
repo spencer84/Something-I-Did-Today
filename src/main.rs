@@ -1,6 +1,5 @@
-use std::{char, env::{self}, io::Cursor, num::ParseIntError};
+use std::{char, env::{self}, num::ParseIntError};
 use chrono::{prelude::*, TimeDelta, NaiveDate};
-use std::io::{self, Write, stdout, BufWriter};
 use rustyline::DefaultEditor;
 
 mod db; 
@@ -85,7 +84,7 @@ fn main(){
                 match second_arg {
                     Some(_) => {let date = get_date(&second_arg.unwrap());
                         let entry = read_entry(date.clone()).unwrap();
-                        let mut editor = rustyline::DefaultEditor::new().unwrap();
+                        let mut editor = DefaultEditor::new().unwrap();
                         match editor.readline_with_initial("", (&entry,"")) {
                             Ok(entry_result) => {
                                 println!("New entry: {}",&entry_result);
@@ -100,7 +99,7 @@ fn main(){
                         println!("Which entry to edit? Date argument missing...");
                         }
                 }
-                let entry = "Edit this entry!";}
+                let _ = "Edit this entry!";}
             &_ => {
 
                 // Try to handle Date arg
@@ -142,18 +141,6 @@ fn main(){
 
 
 }
-
-// // Quick function to read all lines from a file
-// fn read_lines<P>(filename: P) {
-//     read_entry();
-// }
-// where P: AsRef<Path>, {
-//     let file = File::open(filename);
-//     let lines = io::BufReader::new(file.unwrap()).lines();
-//     lines.into_iter().filter_map(|x| x.ok() ).collect()
-// }
-
-// Print out lines 
 fn print_lines( args: Vec<String>) { 
     
     // Try to extract additional argument to identify number of lines to print
@@ -188,8 +175,7 @@ fn print_lines( args: Vec<String>) {
 fn get_date(arg: &str) -> Option<String>
     {
         let date: String = arg.to_string();
-        let parsed_date: Option<String>;
-        
+
         if contains_numbers(&date){
             let separator_option = get_separator(&date);
 
@@ -336,7 +322,7 @@ fn parse_separated_date(separated_date: String, separator: char) -> Option<Strin
         let month = parts[1].parse::<u32>().unwrap();
         if day_is_valid(day) && month_is_valid(month){
             // Get current year
-            let year = 2025; // TODO Fix this
+            let year = Local::now().year();
             return Some(format_date(day, month, year))
         }
         println!("Invalid date format!"); // TODO do we need this? Or do we log errors at a higher level?
@@ -444,6 +430,7 @@ fn get_help() {
     println!("-r, --read <number>               Read last <number> lines (or use a/all for all entries");
     println!("-y, --yesterday <entry>           Write an entry for yesterday's date");
     println!("-l, --last                        Read last entry");
+    println!("-e, --edit <date>                 Edit a previous entry");
     println!("-cd, --change-date <old> <new>    Change an entry date");
 
 }
@@ -488,19 +475,4 @@ fn test_date1(){
 fn test_date2(){
     let date = "2705";
     assert_eq!("2025-05-27", get_date(date).get_or_insert_default());
-}
-
-fn edit_entry(previous_entry: Option<String>) -> () {
-    // Check if valid entry date
-    if previous_entry.is_none(){
-        println!("Invalid date argument.")
-    }
-    let connection: sqlite::Connection = sqlite::open("../journal.db").unwrap();
-    // Use db module for reading specific date
-    // Prepopulate the terminal with the previous entry
-    use std::io::Cursor;
-    let cursor = Cursor::new(previous_entry);
-    // cursor.consume(previous_entry.len());
-
-
 }
