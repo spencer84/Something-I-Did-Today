@@ -1,6 +1,5 @@
-use std::{char, env::{self}, io::Cursor, num::ParseIntError};
+use std::{char, env::{self}, num::ParseIntError};
 use chrono::{prelude::*, TimeDelta, NaiveDate};
-use std::io::{self, Write, stdout, BufWriter};
 use rustyline::DefaultEditor;
 
 mod db; 
@@ -85,7 +84,7 @@ fn main(){
                 match second_arg {
                     Some(_) => {let date = get_date(&second_arg.unwrap());
                         let entry = read_entry(date.clone()).unwrap();
-                        let mut editor = rustyline::DefaultEditor::new().unwrap();
+                        let mut editor = DefaultEditor::new().unwrap();
                         match editor.readline_with_initial("", (&entry,"")) {
                             Ok(entry_result) => {
                                 println!("New entry: {}",&entry_result);
