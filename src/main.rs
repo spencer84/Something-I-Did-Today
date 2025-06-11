@@ -100,7 +100,7 @@ fn main(){
                         println!("Which entry to edit? Date argument missing...");
                         }
                 }
-                let entry = "Edit this entry!";}
+                let _ = "Edit this entry!";}
             &_ => {
 
                 // Try to handle Date arg
@@ -176,8 +176,7 @@ fn print_lines( args: Vec<String>) {
 fn get_date(arg: &str) -> Option<String>
     {
         let date: String = arg.to_string();
-        let parsed_date: Option<String>;
-        
+
         if contains_numbers(&date){
             let separator_option = get_separator(&date);
 
@@ -432,6 +431,7 @@ fn get_help() {
     println!("-r, --read <number>               Read last <number> lines (or use a/all for all entries");
     println!("-y, --yesterday <entry>           Write an entry for yesterday's date");
     println!("-l, --last                        Read last entry");
+    println!("-e, --edit <date>                 Edit a previous entry");
     println!("-cd, --change-date <old> <new>    Change an entry date");
 
 }
@@ -476,19 +476,4 @@ fn test_date1(){
 fn test_date2(){
     let date = "2705";
     assert_eq!("2025-05-27", get_date(date).get_or_insert_default());
-}
-
-fn edit_entry(previous_entry: Option<String>) -> () {
-    // Check if valid entry date
-    if previous_entry.is_none(){
-        println!("Invalid date argument.")
-    }
-    let connection: sqlite::Connection = sqlite::open("../journal.db").unwrap();
-    // Use db module for reading specific date
-    // Prepopulate the terminal with the previous entry
-    use std::io::Cursor;
-    let cursor = Cursor::new(previous_entry);
-    // cursor.consume(previous_entry.len());
-
-
 }
