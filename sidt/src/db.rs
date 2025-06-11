@@ -28,7 +28,6 @@ pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i
     // If existing entry, simply append to the original entry
 
     let query = format!{"SELECT * from entries where date == '{}';", date};
-    println!("Query string:{}",&query);
 
     let mut result = connection.prepare(query).unwrap();
 
@@ -92,8 +91,6 @@ pub fn read_selected_entries(rows: usize) {
     let query = format!("
         SELECT * FROM entries ORDER BY entry_date DESC LIMIT {rows};
     ");
-
-    println!("Query string:{}",query);
 
     let mut result = connection.prepare(query).unwrap();
 

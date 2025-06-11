@@ -30,7 +30,6 @@ pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i
     // If existing entry, simply append to the original entry
 
     let query = format!{"SELECT * from entries where date == '{}';", date};
-    println!("Query string:{}",&query);
 
     let result = connection.prepare(query);
     match result {
@@ -114,7 +113,6 @@ pub fn read_entry(date: Option<String>) -> Result<String, String> {
             let connection = sqlite::open("../journal.db").unwrap();
             let query: String = format!("
             SELECT entry FROM entries WHERE date == '{}';", date);
-            println!("Query string:{}",query);
             let result = connection.prepare(query);
             if result.is_ok(){
                 let mut data = result.unwrap();
