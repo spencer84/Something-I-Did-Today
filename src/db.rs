@@ -1,9 +1,20 @@
 // Set up Sqlite database if not already configured
 pub mod db {
     use std::env;
-
+    use std::env::home_dir;
+    use std::fs::create_dir;
+    use serde_json::{Value, Map};
+    fn get_db_dir() -> String {
+        let settings_string = include_str!("../resources/settings.json");
+        let settings: Value = serde_json::from_str(settings_string).unwrap();
+         match settings.get("home_dir") {
+             Some(path) => path.as_str().unwrap().to_string(),
+             None => home_dir().unwrap().to_str().unwrap().to_string()
+         }
+    }
     pub fn create_entry_table()  {
-
+    let db_dir = get_db_dir();
+    let create_sidt_dir_result = create_dir(db_dir+".sidt");
     let connection = sqlite::open("../journal.db").unwrap();
 
     /* Notes on Schema
