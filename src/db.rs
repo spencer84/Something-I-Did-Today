@@ -3,19 +3,11 @@ use crate::settings;
 // Set up Sqlite database if not already configured
 pub mod db {
     use std::env;
-    use std::env::home_dir;
     use std::fs::create_dir;
     use serde_json::{Value, Map};
     use crate::get_date;
     use crate::settings::settings::{Settings, read_settings};
 
-    pub fn get_db_dir() -> String {
-        let settings: Settings = read_settings();
-         match settings.home_dir {
-             Some(path) => path.as_str().unwrap().to_string(),
-             None => home_dir().unwrap().to_str().unwrap().to_string()
-         }
-    }
     pub fn create_entry_table()  {
     let settings = read_settings();
     let db_dir = settings.home_dir;
@@ -225,13 +217,6 @@ pub fn change_date(old_date: &String, new_date: &String){
 
 }
 
-#[test]
-fn test_home_dir(){
-    let home_dir_default = "/Users/samspencer";
-    let home_dir  = get_db_dir();
-    println!("Home dir: {:?}", home_dir);
-    assert_eq!(home_dir, home_dir_default);
-}
 }
 
 

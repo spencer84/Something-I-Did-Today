@@ -6,15 +6,12 @@ pub mod settings {
     #[derive(Debug, Deserialize, Serialize)]
     #[serde(deny_unknown_fields)]
     pub(crate) struct Settings {
+        #[serde(default = "default_home_dir")]
         pub home_dir: String
     }
 
-    impl Default for Settings {
-        fn default() -> Self {
-            Self(
-                home_dir
-            )
-        }
+    fn default_home_dir() -> String {
+        home_dir().unwrap().to_str().unwrap().to_string()
     }
 
     pub fn read_settings() -> Settings {
@@ -28,6 +25,14 @@ pub mod settings {
         let settings = read_settings();
         let home_dir = settings.home_dir;
         println!("{:?}", home_dir);
-        assert_eq!(home_dir, "/Users/samspencer/");
+        assert_eq!(home_dir, "/Users/samspencer");
+    }
+
+    #[test]
+    fn test_default_home_dir() {
+        let home_dir = default_home_dir();
+        println!("{:?}", home_dir);
+        assert_eq!(home_dir, "/Users/samspencer");
+
     }
 }
