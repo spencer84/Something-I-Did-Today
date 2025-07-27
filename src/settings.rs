@@ -1,7 +1,6 @@
 pub mod settings {
     use std::env::home_dir;
     use serde_derive::{Deserialize, Serialize};
-    use serde_json::{Value, Map};
 
     #[derive(Debug, Deserialize, Serialize)]
     #[serde(deny_unknown_fields)]
@@ -30,7 +29,7 @@ pub mod settings {
 
     #[test]
     fn test_default_home_dir() {
-        let home_dir = default_home_dir();
+        let home_dir: String = default_home_dir();
         println!("{:?}", home_dir);
         assert_eq!(home_dir, "/Users/samspencer");
 
