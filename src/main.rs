@@ -140,8 +140,6 @@ fn main(){
             }
         };
     }
-
-
 }
 fn print_lines( args: Vec<String>) { 
     
@@ -161,7 +159,6 @@ fn print_lines( args: Vec<String>) {
         else {
             println!("{}","Read argument must be numeric value. E.g. r 5 to read the last 5 lines.")
         }
-
     } 
     // Otherwise just print all lines
     

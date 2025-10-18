@@ -1,9 +1,9 @@
 // Set up Sqlite database if not already configured
 pub mod db {
     use std::fs::create_dir;
+    use owo_colors::OwoColorize;
     use sqlite::Connection;
     use crate::settings::settings::read_settings;
-
 
     fn get_connection() -> Result<Connection, sqlite::Error> {
         let db_path = read_settings().home_dir + "/.sidt/journal.db";
@@ -114,7 +114,7 @@ pub fn read_selected_entries(rows: usize) -> (){
 
        // let last_updated = result.read::<String, _>("last_updated").unwrap();
 
-        println!("{} {}", date, entry);
+        println!("{} {}", date.blue().bold(), entry);
     }
 }
 
@@ -164,8 +164,8 @@ pub fn read_entry(date: Option<String>) -> Result<String, String> {
            // let entry_date = result.read::<String, _>("entry_date").unwrap();
     
             //let last_updated = result.read::<String, _>("last_updated").unwrap();
-    
-            println!("{} {}", date, entry);
+            // TODO: Provide ability to customise colour choice
+            println!("{} {}", date.blue().bold(), entry);
         }
     }
 
