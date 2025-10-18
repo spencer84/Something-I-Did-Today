@@ -1,7 +1,7 @@
 // Set up Sqlite database if not already configured
 pub mod db {
     use std::fs::create_dir;
-    use owo_colors::OwoColorize;
+    use colored::Colorize;
     use sqlite::Connection;
     use crate::settings::settings::read_settings;
 
