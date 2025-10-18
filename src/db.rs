@@ -2,11 +2,8 @@ use crate::get_date;
 use crate::settings;
 // Set up Sqlite database if not already configured
 pub mod db {
-    use std::env;
     use std::fs::create_dir;
-    use serde_json::{Value, Map};
     use sqlite::Connection;
-    use crate::get_date;
     use crate::settings::settings::{Settings, read_settings};
 
 
