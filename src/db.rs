@@ -1,11 +1,9 @@
-use crate::get_date;
-use crate::settings;
 // Set up Sqlite database if not already configured
 pub mod db {
     use std::fs::create_dir;
+    use owo_colors::OwoColorize;
     use sqlite::Connection;
-    use crate::settings::settings::{Settings, read_settings};
-
+    use crate::settings::settings::read_settings;
 
     fn get_connection() -> Result<Connection, sqlite::Error> {
         let db_path = read_settings().home_dir + "/.sidt/journal.db";
@@ -13,7 +11,7 @@ pub mod db {
 
         match connection_result {
             Ok(connection) => Ok(connection),
-            Err(error) => {
+            Err(_) => {
                 create_entry_table();
                 let subsequent_connection = get_connection();
                 subsequent_connection
@@ -54,12 +52,7 @@ pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i
         Ok(_) => (),
         Err(_) => create_entry_table()
     }
-
-    println!("Checking records for date: {}",date);
     let any: Vec<Result<sqlite::Row, sqlite::Error>> = result.unwrap().iter().collect();
-
-    println!("Records for date: {}",date);
-
 
     if any.len() >= 1 {
         let update_statement = format!("
@@ -121,7 +114,7 @@ pub fn read_selected_entries(rows: usize) -> (){
 
        // let last_updated = result.read::<String, _>("last_updated").unwrap();
 
-        println!("{} {}", date, entry);
+        println!("{} {}", date.blue().bold(), entry);
     }
 }
 
@@ -171,8 +164,8 @@ pub fn read_entry(date: Option<String>) -> Result<String, String> {
            // let entry_date = result.read::<String, _>("entry_date").unwrap();
     
             //let last_updated = result.read::<String, _>("last_updated").unwrap();
-    
-            println!("{} {}", date, entry);
+            // TODO: Provide ability to customise colour choice
+            println!("{} {}", date.blue().bold(), entry);
         }
     }
 
