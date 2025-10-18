@@ -2,7 +2,9 @@ use std::{char, env::{self}, num::ParseIntError};
 use chrono::{prelude::*, TimeDelta, NaiveDate};
 use rustyline::DefaultEditor;
 
-mod db; 
+mod db;
+mod settings;
+
 use crate::db::db::*;
 
 fn main(){

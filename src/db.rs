@@ -1,10 +1,31 @@
+use crate::get_date;
+use crate::settings;
 // Set up Sqlite database if not already configured
 pub mod db {
-    use std::env;
+    use std::fs::create_dir;
+    use sqlite::Connection;
+    use crate::settings::settings::{Settings, read_settings};
 
+
+    fn get_connection() -> Result<Connection, sqlite::Error> {
+        let db_path = read_settings().home_dir + "/.sidt/journal.db";
+        let connection_result = sqlite::open(db_path);
+
+        match connection_result {
+            Ok(connection) => Ok(connection),
+            Err(error) => {
+                create_entry_table();
+                let subsequent_connection = get_connection();
+                subsequent_connection
+            }
+        }
+
+    }
     pub fn create_entry_table()  {
-
-    let connection = sqlite::open("../journal.db").unwrap();
+    let settings = read_settings();
+    let db_dir = settings.home_dir + "/.sidt";
+    let _create_sidt_dir_result = create_dir(&db_dir);
+    let connection = sqlite::open(db_dir+"/journal.db").unwrap();
 
     /* Notes on Schema
     date - TEXT - Formatted date string for the entry date. Acts as Primary Key.
@@ -21,10 +42,7 @@ pub mod db {
 }
 
 pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i64) {
-    let path = env::home_dir().unwrap();
-    println!("Home dir: {:?}", path);
-    let connection = sqlite::open("../journal.db").unwrap();
-
+    let connection = get_connection().unwrap();
     // Read db to see if there is an existing entry
 
     // If existing entry, simply append to the original entry
@@ -72,7 +90,7 @@ pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i
 
 pub fn update_entry(date: String, entry: String, last_updated: i64) {
 
-    let connection = sqlite::open("../journal.db").unwrap();
+    let connection = get_connection().unwrap();
     let query = format!("
         UPDATE entries SET entry = '{entry}',last_updated = '{last_updated}'  WHERE date == '{date}';
     ");
@@ -86,7 +104,7 @@ pub fn read_last_entry() {
 }
 
 pub fn read_selected_entries(rows: usize) -> (){
-    let connection = sqlite::open("../journal.db").unwrap();
+    let connection = get_connection().unwrap();
 
     let query = format!("
         SELECT * FROM entries ORDER BY entry_date DESC LIMIT {rows};
@@ -110,7 +128,7 @@ pub fn read_selected_entries(rows: usize) -> (){
 pub fn read_entry(date: Option<String>) -> Result<String, String> {
     match date {
         Some(date) => {
-            let connection = sqlite::open("../journal.db").unwrap();
+            let connection = get_connection().unwrap();
             let query: String = format!("
             SELECT entry FROM entries WHERE date == '{}';", date);
             let result = connection.prepare(query);
@@ -136,7 +154,7 @@ pub fn read_entry(date: Option<String>) -> Result<String, String> {
 
 }
     pub fn read_all_entries() {
-    let connection = sqlite::open("../journal.db").unwrap();
+        let connection = get_connection().unwrap();
 
     let query = "SELECT * FROM entries ORDER BY entry_date DESC;";
 
@@ -162,7 +180,7 @@ pub fn read_entry(date: Option<String>) -> Result<String, String> {
 }
 
 pub fn delete_selected_entry(date: String){
-    let connection = sqlite::open("../journal.db").unwrap();
+    let connection = get_connection().unwrap();
 
     let query = format!("
     DELETE * FROM entries WHERE date == '{}';
@@ -175,7 +193,7 @@ pub fn delete_selected_entry(date: String){
 // pub fn delete_date_range()
 
 pub fn get_search_results(search_phrase: &String) {
-    let connection: sqlite::Connection = sqlite::open("../journal.db").unwrap();
+    let connection = get_connection().unwrap();
 
     let query = format!("
     SELECT date, entry FROM entries WHERE entry LIKE '%{}%';
@@ -199,7 +217,7 @@ pub fn get_search_results(search_phrase: &String) {
 }
 
 pub fn change_date(old_date: &String, new_date: &String){
-    let connection: sqlite::Connection = sqlite::open("../journal.db").unwrap();
+    let connection = get_connection().unwrap();
 
     let query: String = format!("
     UPDATE entries SET date = '{new_date}' WHERE date == '{old_date}'
@@ -210,4 +228,5 @@ pub fn change_date(old_date: &String, new_date: &String){
 }
 
 }
+
 
