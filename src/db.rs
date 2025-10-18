@@ -1,10 +1,8 @@
-use crate::get_date;
-use crate::settings;
 // Set up Sqlite database if not already configured
 pub mod db {
     use std::fs::create_dir;
     use sqlite::Connection;
-    use crate::settings::settings::{Settings, read_settings};
+    use crate::settings::settings::read_settings;
 
 
     fn get_connection() -> Result<Connection, sqlite::Error> {
@@ -13,7 +11,7 @@ pub mod db {
 
         match connection_result {
             Ok(connection) => Ok(connection),
-            Err(error) => {
+            Err(_) => {
                 create_entry_table();
                 let subsequent_connection = get_connection();
                 subsequent_connection
