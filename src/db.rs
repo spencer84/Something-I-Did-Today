@@ -54,12 +54,7 @@ pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i
         Ok(_) => (),
         Err(_) => create_entry_table()
     }
-
-    println!("Checking records for date: {}",date);
     let any: Vec<Result<sqlite::Row, sqlite::Error>> = result.unwrap().iter().collect();
-
-    println!("Records for date: {}",date);
-
 
     if any.len() >= 1 {
         let update_statement = format!("
