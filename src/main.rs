@@ -102,6 +102,24 @@ fn main(){
                         }
                 }
                 let _ = "Edit this entry!";}
+            "-t" | "--tag" => {
+                // TODO: Allow user to create a long form and short form of the tag
+                // E.g. -m & --movie
+                let tag: &String = &args[2];
+                // Create a tag for quick references in future
+                // For example, lets say we want to create a tag to flag movies we've watched
+                // We can create a movie tag with: sidt -t movie
+                // Then we can reference it with two dashes:
+                // sidt Hung out with friends --movie The Fast and Furious
+                // This should render to: 18-10-2025: Hung out with friends
+                // To access tag data: sidt -r --movie
+                // This should render to: 18-10-2025: The Fast and Furious
+                
+                // TODO: Re-write this to handle specific args
+                // let date_time = Local::now();
+                // let formatted_date = date_time.format("%Y-%m-%d").to_string();
+                create_tag(tag);
+            }
             &_ => {
 
                 // Try to handle Date arg
@@ -126,8 +144,8 @@ fn main(){
 
                     }
                     _ => {
-                        formatted_date = Local::now().format("%Y-%m-%d").to_string();
                         date_time = Local::now();
+                        formatted_date = date_time.format("%Y-%m-%d").to_string();
                         text = &args[1..];
                     }
                 }
@@ -137,8 +155,8 @@ fn main(){
                 let entry: String = text.join(" ");
 
                 write_entry(formatted_date, entry, date_time.timestamp(), current_time);
-            }
-        };
+            },
+            };
     }
 }
 fn print_lines( args: Vec<String>) { 

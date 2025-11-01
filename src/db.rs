@@ -68,6 +68,7 @@ pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i
     else {
         let insert_statement = format!("
         INSERT INTO entries VALUES ('{date}','{entry}','{entry_date}','{last_updated}');    
+        INSERT INTO entries VALUES ('{date}','{entry}','{entry_date}','{last_updated}');
         ");
     
         let _ = connection.execute(insert_statement);
@@ -218,6 +219,41 @@ pub fn change_date(old_date: &String, new_date: &String){
 
     connection.execute(query).unwrap();
 
+}
+
+    fn create_tag_tables(){
+        let connection = get_connection().unwrap();
+
+        // Similar to entry table; log of all tag usage and content
+        let query_tag_content = "\
+        CREATE TABLE tag_content\
+        (date TEXT, tag TEXT, tag_content TEXT, entry_date INTEGER, last_updated INTEGER);";
+        connection.execute(query_tag_content).unwrap();
+
+        // Summary table about each tag
+        let query_tags = "\
+        CREATE TABLE tag_content\
+        (tag TEXT, long_form_tag TEXT, short_form_tag TEXT, description TEXT);";
+        connection.execute(query_tags).unwrap();
+    }
+
+    pub fn create_tag(tag: &String){
+        let connection = get_connection().unwrap();
+        let query = format!("INSERT INTO tags VALUES ('{}','','','');
+ ", tag);
+        let result = connection.execute(query);
+        if result.is_err(){
+            let error_message = result.err().unwrap();
+            if error_message.to_string() == "no such table: tags" {
+                create_tag_tables();
+            }
+        }
+    }
+pub fn write_tag(date: String, tag: &String, tag_content: String, entry_date: i64, last_updated: i64){
+    let connection = get_connection().unwrap();
+
+    let query = format!("INSERT INTO tag_content VALUES ('{date}','{tag}','{tag_content}','{entry_date}','{last_updated}');','');");
+    connection.execute(query).unwrap();
 }
 
 }
