@@ -67,7 +67,6 @@ pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i
 
     else {
         let insert_statement = format!("
-        INSERT INTO entries VALUES ('{date}','{entry}','{entry_date}','{last_updated}');    
         INSERT INTO entries VALUES ('{date}','{entry}','{entry_date}','{last_updated}');
         ");
     
@@ -177,7 +176,7 @@ pub fn delete_selected_entry(date: String){
     let connection = get_connection().unwrap();
 
     let query = format!("
-    DELETE * FROM entries WHERE date == '{}';
+    DELETE FROM entries WHERE date == '{}';
     ", date);
 
     connection.execute(query).unwrap();

@@ -42,27 +42,15 @@ fn main(){
                 let second_arg = args.get(2);
 
                 let date: String;
-
+                // Only delete date if second arg successfully parsed
                 if second_arg.is_some() {
                     if get_date(&second_arg.unwrap()).is_some() {
-                        date = get_date(&second_arg.unwrap()).unwrap()
-                    }
-
-                    else {
-                        date = Local::now().format("%Y-%m-%d").to_string();
+                        date = get_date(&second_arg.unwrap()).unwrap();
+                        delete_selected_entry(date);
                     }
                 }
                 else {
-                    date = Local::now().format("%Y-%m-%d").to_string();
-                }
-
-                // If new entry supplied, update that record instead of full deleting
-                if args.len() > 2 {
-                    let entry = args[2..].join(" ");
-                    update_entry(date, entry, current_time);
-                }
-                else {
-                    delete_selected_entry(date);
+                    println!("No date specified");
                 }
             },
             "-y" | "--yesterday" => {
