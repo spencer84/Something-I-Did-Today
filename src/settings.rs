@@ -1,12 +1,12 @@
 pub mod settings {
-    use std::env::home_dir;
     use serde_derive::{Deserialize, Serialize};
+    use std::env::home_dir;
 
     #[derive(Debug, Deserialize, Serialize)]
     #[serde(deny_unknown_fields)]
     pub(crate) struct Settings {
         #[serde(default = "default_home_dir")]
-        pub home_dir: String
+        pub home_dir: String,
     }
 
     fn default_home_dir() -> String {
@@ -32,6 +32,5 @@ pub mod settings {
         let home_dir: String = default_home_dir();
         println!("{:?}", home_dir);
         assert_eq!(home_dir, "/Users/samspencer");
-
     }
 }
