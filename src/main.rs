@@ -30,7 +30,20 @@ fn main() {
                 // If arg passed, give specific help for that option
                 get_help()
             }
-            "-r" | "--read" => print_lines(args.to_vec()),
+            "-r" | "--read" => {
+                // Check if second arg is a tag
+                let possible_tag = check_tag(&args[2]);
+                match possible_tag {
+                    Some(tag) => {
+                        print_tags(&tag, args[2..].to_vec())
+                    }
+                    None => {
+                        // Parse for number of lines to print then print
+                        print_lines(args.to_vec())
+                    }
+                }
+
+            },
             "-l" | "--last" => read_last_entry(),
             "-s" | "--search" => {
                 //
@@ -193,6 +206,33 @@ fn print_lines(args: Vec<String>) {
     else {
         let number: usize = 5;
         read_selected_entries(number);
+    }
+}
+
+fn print_tags(tag: &String, args: Vec<String>) {
+    // Try to extract additional argument to identify number of lines to print
+    if args.len() > 2 {
+        let lines_to_print: Result<usize, ParseIntError> = args[2].trim().parse();
+        if lines_to_print.is_ok() {
+            let number = lines_to_print.unwrap();
+            println!("Number of lines to print:{}", number);
+
+            read_selected_entries(number);
+        }
+        // Handle arg for all records
+        else if args[2].trim() == "a" || args[2].trim() == "all" {
+            read_all_entries();
+        } else {
+            println!(
+                "{}",
+                "Read argument must be numeric value. E.g. r 5 to read the last 5 lines."
+            )
+        }
+    }
+    // Otherwise just print all lines
+    else {
+        let number: usize = 5;
+        read_selected_tags(tag, number);
     }
 }
 

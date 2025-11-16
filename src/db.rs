@@ -258,6 +258,23 @@ pub mod db {
         connection.execute(query).unwrap();
     }
 
+    pub fn read_selected_tags(tag: &String, number: usize) -> () {
+        let connection = get_connection().unwrap();
+        let query: String = format!(
+            "SELECT date, tag_content FROM tag_content WHERE tag == '{tag}' ORDER BY entry_date DESC LIMIT {number};",
+        );
+        let mut result = connection.prepare(query).unwrap();
+
+            while let Ok(sqlite::State::Row) = result.next() {
+            let date = result.read::<String, _>("date").unwrap();
+
+            let tag_content = result.read::<String, _>("tag_content").unwrap();
+
+            println!("{} {}", date.blue().bold(), tag_content);
+        }
+    }
+
+
     pub fn get_tags() -> Vec<String> {
         let connection = get_connection().unwrap();
 
