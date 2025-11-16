@@ -507,8 +507,10 @@ fn update_date(args: Vec<String>) {
         println!("Invalid date args")
     }
 }
-
+/// Returns an Optional value if a valid tag is found.
+/// If the argument does not match any known tags, then the value is None.
 fn check_tag(arg: &String) -> Option<String> {
+    // Get all tags from db
     let tags = get_tags();
     if arg.contains("--"){
         let possible_tag = arg.strip_prefix("--").unwrap().to_string();
