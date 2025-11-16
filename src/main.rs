@@ -133,23 +133,38 @@ fn main() {
 
                 match possible_date {
                     Some(_) => {
+                        // Can we move this logic to the date parsing function?
                         formatted_date = possible_date.unwrap();
                         let naive_date =
                             NaiveDate::parse_from_str(&formatted_date, "%Y-%m-%d").unwrap();
                         let naive_datetime = naive_date.and_time(NaiveTime::default());
                         date_time = Local.from_local_datetime(&naive_datetime).unwrap();
-                        text = &args[2..];
+                        // Check for tags
+                        let possible_tag: Option<String> = check_tag(&args[2]);
+                        match possible_tag {
+                            Some(tag) => {
+                                println!("Tag: {}", &tag);
+                                let tag_entry = &args[3..].join(" ");
+                                write_tag(formatted_date, &tag, tag_entry, date_time.timestamp(), current_time)
+                            }
+                            None => {
+                                text = &args[2..];
+                                let entry: String = text.join(" ");
+                                write_entry(formatted_date, entry, date_time.timestamp(), current_time);
+                            }
+                        }
+
                     }
                     _ => {
                         date_time = Local::now();
                         formatted_date = date_time.format("%Y-%m-%d").to_string();
                         text = &args[1..];
+                        let entry: String = text.join(" ");
+                        write_entry(formatted_date, entry, date_time.timestamp(), current_time);
                     }
                 }
 
-                let entry: String = text.join(" ");
 
-                write_entry(formatted_date, entry, date_time.timestamp(), current_time);
             }
         };
     }
@@ -452,6 +467,40 @@ fn update_date(args: Vec<String>) {
         println!("Invalid date args")
     }
 }
+
+fn check_tag(arg: &String) -> Option<String> {
+    let tags = get_tags();
+    if arg.contains("--"){
+        let possible_tag = arg.strip_prefix("--").unwrap().to_string();
+        return if tags.contains(&possible_tag) {
+            Some(possible_tag.to_string())
+        } else {
+            None
+        }
+    }
+    else if arg.contains("-") {
+        let possible_tag = arg.strip_prefix("-").unwrap().to_string();
+        return if tags.contains(&possible_tag) {
+            Some(possible_tag.to_string())
+        }
+        else {
+            None
+        }
+    }
+    else {
+        None
+    }
+
+}
+
+// fn is_flag(arg: &String) -> bool {
+//     if arg.starts_with("-") {}
+// }
+
+// enum FlagType {
+//     Long,
+//     Short
+// }
 
 #[test]
 fn test_date1() {

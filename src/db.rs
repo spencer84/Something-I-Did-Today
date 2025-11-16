@@ -226,7 +226,7 @@ pub mod db {
 
         // Summary table about each tag
         let query_tags = "\
-        CREATE TABLE tag_content\
+        CREATE TABLE tags\
         (tag TEXT, long_form_tag TEXT, short_form_tag TEXT, description TEXT);";
         connection.execute(query_tags).unwrap();
     }
@@ -234,8 +234,7 @@ pub mod db {
     pub fn create_tag(tag: &String) {
         let connection = get_connection().unwrap();
         let query = format!(
-            "INSERT INTO tags VALUES ('{}','','','');
- ",
+            "INSERT INTO tags VALUES ('{}','','','');",
             tag
         );
         let result = connection.execute(query);
@@ -249,13 +248,41 @@ pub mod db {
     pub fn write_tag(
         date: String,
         tag: &String,
-        tag_content: String,
+        tag_content: &String,
         entry_date: i64,
         last_updated: i64,
     ) {
         let connection = get_connection().unwrap();
 
-        let query = format!("INSERT INTO tag_content VALUES ('{date}','{tag}','{tag_content}','{entry_date}','{last_updated}');','');");
+        let query = format!("INSERT INTO tag_content VALUES ('{date}','{tag}','{tag_content}','{entry_date}','{last_updated}');");
         connection.execute(query).unwrap();
+    }
+
+    pub fn get_tags() -> Vec<String> {
+        let connection = get_connection().unwrap();
+
+        let query = "SELECT tag,long_form_tag,short_form_tag FROM tags";
+        let mut result_raw = connection.prepare(query);
+        let mut result = match result_raw{
+            Ok(result) => result,
+            Err(err) => {
+                create_tag_tables();
+                return get_tags();
+            }
+        };
+
+        let mut short_form: Vec<String> = Vec::new();
+        let mut long_form: Vec<String> = Vec::new();
+        let mut tags: Vec<String> = Vec::new();
+        while let Ok(sqlite::State::Row) = result.next() {
+            short_form.push(result.read::<String, _>("short_form_tag").unwrap());
+            long_form.push(result.read::<String, _>("long_form_tag").unwrap());
+            // Long term pattern would be to just use long or short form locations
+            // and avoid using the default tag name
+            tags.push(result.read::<String, _>("tag").unwrap());
+
+        }
+        let all_tags = vec![long_form, short_form, tags].concat();
+        all_tags
     }
 }
