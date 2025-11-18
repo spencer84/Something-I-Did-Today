@@ -233,10 +233,7 @@ pub mod db {
 
     pub fn create_tag(tag: &String) {
         let connection = get_connection().unwrap();
-        let query = format!(
-            "INSERT INTO tags VALUES ('{}','','','');",
-            tag
-        );
+        let query = format!("INSERT INTO tags VALUES ('{}','','','');", tag);
         let result = connection.execute(query);
         if result.is_err() {
             let error_message = result.err().unwrap();
@@ -265,7 +262,7 @@ pub mod db {
         );
         let mut result = connection.prepare(query).unwrap();
 
-            while let Ok(sqlite::State::Row) = result.next() {
+        while let Ok(sqlite::State::Row) = result.next() {
             let date = result.read::<String, _>("date").unwrap();
 
             let tag_content = result.read::<String, _>("tag_content").unwrap();
@@ -274,13 +271,12 @@ pub mod db {
         }
     }
 
-
     pub fn get_tags() -> Vec<String> {
         let connection = get_connection().unwrap();
 
         let query = "SELECT tag,long_form_tag,short_form_tag FROM tags";
         let mut result_raw = connection.prepare(query);
-        let mut result = match result_raw{
+        let mut result = match result_raw {
             Ok(result) => result,
             Err(err) => {
                 create_tag_tables();
@@ -297,7 +293,6 @@ pub mod db {
             // Long term pattern would be to just use long or short form locations
             // and avoid using the default tag name
             tags.push(result.read::<String, _>("tag").unwrap());
-
         }
         let all_tags = vec![long_form, short_form, tags].concat();
         all_tags

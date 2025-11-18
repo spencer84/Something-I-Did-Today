@@ -32,24 +32,21 @@ fn main() {
             }
             "-r" | "--read" => {
                 // Check if second arg is a tag
-                let second_arg  = args.get(2);
+                let second_arg = args.get(2);
                 let possible_tag: Option<String>;
                 if second_arg.is_some() {
                     possible_tag = check_tag(second_arg.unwrap());
-                }
-                else {
+                } else {
                     possible_tag = None;
                 }
                 match possible_tag {
-                    Some(tag) => {
-                        print_tags(&tag, args[2..].to_vec())
-                    }
+                    Some(tag) => print_tags(&tag, args[2..].to_vec()),
                     None => {
                         // Parse for number of lines to print then print
                         print_lines(args.to_vec())
                     }
                 }
-            },
+            }
             "-l" | "--last" => read_last_entry(),
             "-s" | "--search" => {
                 //
@@ -164,15 +161,25 @@ fn main() {
                             Some(tag) => {
                                 println!("Tag: {}", &tag);
                                 let tag_entry = &args[3..].join(" ");
-                                write_tag(formatted_date, &tag, tag_entry, date_time.timestamp(), current_time)
+                                write_tag(
+                                    formatted_date,
+                                    &tag,
+                                    tag_entry,
+                                    date_time.timestamp(),
+                                    current_time,
+                                )
                             }
                             None => {
                                 text = &args[2..];
                                 let entry: String = text.join(" ");
-                                write_entry(formatted_date, entry, date_time.timestamp(), current_time);
+                                write_entry(
+                                    formatted_date,
+                                    entry,
+                                    date_time.timestamp(),
+                                    current_time,
+                                );
                             }
                         }
-
                     }
                     _ => {
                         date_time = Local::now();
@@ -182,8 +189,6 @@ fn main() {
                         write_entry(formatted_date, entry, date_time.timestamp(), current_time);
                     }
                 }
-
-
             }
         };
     }
@@ -518,27 +523,23 @@ fn update_date(args: Vec<String>) {
 fn check_tag(arg: &String) -> Option<String> {
     // Get all tags from db
     let tags = get_tags();
-    if arg.contains("--"){
+    if arg.contains("--") {
         let possible_tag = arg.strip_prefix("--").unwrap().to_string();
         return if tags.contains(&possible_tag) {
             Some(possible_tag.to_string())
         } else {
             None
-        }
-    }
-    else if arg.contains("-") {
+        };
+    } else if arg.contains("-") {
         let possible_tag = arg.strip_prefix("-").unwrap().to_string();
         return if tags.contains(&possible_tag) {
             Some(possible_tag.to_string())
-        }
-        else {
+        } else {
             None
-        }
-    }
-    else {
+        };
+    } else {
         None
     }
-
 }
 
 // fn is_flag(arg: &String) -> bool {
