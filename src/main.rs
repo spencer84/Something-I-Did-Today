@@ -32,7 +32,14 @@ fn main() {
             }
             "-r" | "--read" => {
                 // Check if second arg is a tag
-                let possible_tag = check_tag(&args[2]);
+                let second_arg  = args.get(2);
+                let possible_tag: Option<String>;
+                if second_arg.is_some() {
+                    possible_tag = check_tag(second_arg.unwrap());
+                }
+                else {
+                    possible_tag = None;
+                }
                 match possible_tag {
                     Some(tag) => {
                         print_tags(&tag, args[2..].to_vec())
@@ -42,7 +49,6 @@ fn main() {
                         print_lines(args.to_vec())
                     }
                 }
-
             },
             "-l" | "--last" => read_last_entry(),
             "-s" | "--search" => {
