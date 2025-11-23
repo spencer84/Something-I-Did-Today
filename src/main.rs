@@ -33,23 +33,21 @@ fn main() {
             "-r" | "--read" => {
                 // Check if second arg is a tag
                 let second_arg = args.get(2);
-                let possible_tag: Option<String>;
-                if second_arg.is_some() {
-                    possible_tag = check_tag(second_arg.unwrap());
-                } else {
-                    possible_tag = None;
-                }
-                match possible_tag {
-                    Some(tag) => print_tags(&tag, args[2..].to_vec()),
-                    None => {
-                        // Parse for number of lines to print then print
-                        print_lines(args.to_vec())
+                let parsed_read_arg = assign_read_subarg(&second_arg);
+                match parsed_read_arg {
+                    ReadSubArg::Tag(tag) => {
+                        read_selected_tags(&tag, 5);
+                    }
+                    ReadSubArg::Numeric(number ) => {
+                        read_selected_entries(number);
+                    }
+                    ReadSubArg::None => {
+                        read_selected_entries(5);
                     }
                 }
             }
             "-l" | "--last" => read_last_entry(),
             "-s" | "--search" => {
-                //
                 let second_arg = args.get(2);
                 match second_arg {
                     Some(_) => get_search_results(second_arg.unwrap()),
@@ -92,7 +90,6 @@ fn main() {
                 );
             }
             "-e" | "--edit" => {
-                // TODO get previous entry
                 // Try to parse date
                 let second_arg = args.get(2);
                 match second_arg {
@@ -245,6 +242,61 @@ fn print_tags(tag: &String, args: Vec<String>) {
         let number: usize = 5;
         read_selected_tags(tag, number);
     }
+}
+
+/// sidt -r -t
+/// sidt -r
+/// Sub args for the read arg
+enum ReadSubArg {
+    Tag(String),
+    /// if tag, extract the tag value
+    Numeric(usize),
+    None,
+}
+
+/// All sub args for each arg
+/// -r -> tag, numeric (number of lines)
+/// free text -> tag, date
+/// edit -> date, //TODO Add ability to edit tags
+/// yesterday -> tag
+/// search -> free text
+/// delete -> tag, date
+//
+fn assign_read_subarg(arg_option: &Option<&String>) -> ReadSubArg {
+    // When parsing args, consider the following order...
+    // Does it have a flag pattern? (i.e. contains '-' or '--')
+    // If yes, parse it as a flag
+    // If not, is it numeric?
+    // If yes, then read that many lines
+    // if not, then we've exhausted the valid arguments for the read flag
+    match arg_option {
+        Some(arg) => {
+            if is_flag_pattern(&arg) {
+                let possible_tag = check_tag(&arg);
+                match possible_tag {
+                    Some(tag) => ReadSubArg::Tag(tag),
+                    None => ReadSubArg::None,
+                }
+            } else if contains_numbers(&arg) {
+                let lines_to_print: Result<usize, ParseIntError> = arg.trim().parse();
+                if lines_to_print.is_ok() {
+                    ReadSubArg::Numeric(lines_to_print.unwrap())
+                } else {
+                    ReadSubArg::None
+                }
+            } else {
+                ReadSubArg::None
+            }
+        }
+        None => ReadSubArg::None,
+    }
+}
+
+fn is_flag_pattern(arg: &String) -> bool {
+    if arg.starts_with("--") | arg.starts_with("-") {
+        return true;
+    }
+    return false;
 }
 
 // Try to get a date from the first argument. If first arg is not numeric/date type, then use the current date
@@ -492,6 +544,7 @@ fn get_help() {
     println!("-l, --last                        Read last entry");
     println!("-e, --edit <date>                 Edit a previous entry");
     println!("-cd, --change-date <old> <new>    Change an entry date");
+    println!("-t, --tag <tag>                   Create a new tag for grouping entries");
 }
 
 fn update_date(args: Vec<String>) {
