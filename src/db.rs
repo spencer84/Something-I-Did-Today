@@ -125,7 +125,6 @@ pub fn read_entry(date: Option<String>) -> Result<String, String> {
             let result = connection.prepare(query);
             if result.is_ok() {
                 let mut data = result.unwrap();
-                println!("Column names: {:?}", data.column_names().to_vec());
                 if let Ok(sqlite::State::Row) = data.next() {
                     Ok(data.read::<String, _>("entry").unwrap())
                 } else {

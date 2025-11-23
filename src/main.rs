@@ -1,13 +1,9 @@
 use rustyline::DefaultEditor;
-use std::{
-    char,
-    env::{self},
-    num::ParseIntError,
-};
+use std::env::{self};
 
-use chrono::{prelude::*, NaiveDate, TimeDelta, DateTime, Local};
-use sidt::{assign_read_subarg, check_tag, contains_numbers, get_date, get_help, is_flag_pattern, update_date, ReadSubArg};
-use sidt::db::{*};
+use chrono::{prelude::*, DateTime, Local, NaiveDate, TimeDelta};
+use sidt::db::*;
+use sidt::{assign_read_subarg, check_tag, get_date, get_help, update_date, ReadSubArg};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
