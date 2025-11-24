@@ -110,12 +110,27 @@ fn main() {
             "-t" | "--tag" => {
                 // TODO: Allow user to create a long form and short form of the tag
                 // E.g. -m & --movie
-                let tag: &String = &args[2];
+                let tag: &String = args.get(2).unwrap();
                 if is_reserved_value(tag){
                     println!("Tag is already a reserved flag...");
                 }
                 else {
-                    create_tag(tag);
+                    let next_arg = args.get(3);
+                    let possible_short_tag = args.get(4);
+                    match next_arg {
+                        Some(arg) => {
+                            if arg == "-a" {
+                                create_tag(tag, possible_short_tag);
+                            }
+                            else {
+                                create_tag(tag, None)
+                            }
+                        }
+                        None => {
+                            create_tag(tag, None);
+                        }
+                    }
+
                 }
                 // -t movie -a m
                 // this sets a long form and a short form

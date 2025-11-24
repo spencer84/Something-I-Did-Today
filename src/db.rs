@@ -2,6 +2,7 @@
 use colored::Colorize;
 use sqlite::Connection;
 use std::fs::create_dir;
+use crate::is_reserved_value;
 use crate::settings::read_settings;
 
 fn get_connection() -> Result<Connection, sqlite::Error> {
@@ -229,9 +230,23 @@ fn create_tag_tables() {
     connection.execute(query_tags).unwrap();
 }
 
-pub fn create_tag(tag: &String) {
+pub fn create_tag(tag: &String, short_tag: Option<&String>)  {
     let connection = get_connection().unwrap();
-    let query = format!("INSERT INTO tags VALUES ('{}','','','');", tag);
+    let query: String = match short_tag {
+        Some(short_tag) => {
+            if is_reserved_value(&short_tag) {
+                println!("Tag is already a reserved flag...");
+                "SELECT tag from tags;".to_string() // Workaround; need to refactor
+            }
+            else{
+                format!("INSERT INTO tags VALUES ('{tag}','{short_tag}','');")
+            }
+        }
+        None => {
+             format!("INSERT INTO tags VALUES ('{tag}','','');")
+        }
+    };
+
     let result = connection.execute(query);
     if result.is_err() {
         let error_message = result.err().unwrap();
