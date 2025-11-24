@@ -283,7 +283,6 @@ pub fn get_tags() -> Vec<String> {
     };
 
     let mut short_form: Vec<String> = Vec::new();
-    let mut long_form: Vec<String> = Vec::new();
     let mut tags: Vec<String> = Vec::new();
     while let Ok(sqlite::State::Row) = result.next() {
         short_form.push(result.read::<String, _>("short_form_tag").unwrap());
