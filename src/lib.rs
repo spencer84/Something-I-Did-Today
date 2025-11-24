@@ -14,6 +14,11 @@ pub fn is_flag_pattern(arg: &String) -> bool {
     false
 }
 
+pub fn is_reserved_value(tag: &String) -> bool {
+    let reserved_values = ["e","edit","r","read","help","y","yesterday","d","delete","cd","change-date","l","last","s","search"];
+    reserved_values.contains(&tag.as_str())
+}
+
 // Try to get a date from the first argument. If first arg is not numeric/date type, then use the current date
 pub fn get_date(arg: &str) -> Option<String> {
     let date: String = arg.to_string();

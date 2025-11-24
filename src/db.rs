@@ -272,7 +272,7 @@ pub fn read_selected_tags(tag: &String, number: usize) -> () {
 pub fn get_tags() -> Vec<String> {
     let connection = get_connection().unwrap();
 
-    let query = "SELECT tag,long_form_tag,short_form_tag FROM tags";
+    let query = "SELECT tag,short_form_tag FROM tags";
     let mut result_raw = connection.prepare(query);
     let mut result = match result_raw {
         Ok(result) => result,
@@ -287,12 +287,9 @@ pub fn get_tags() -> Vec<String> {
     let mut tags: Vec<String> = Vec::new();
     while let Ok(sqlite::State::Row) = result.next() {
         short_form.push(result.read::<String, _>("short_form_tag").unwrap());
-        long_form.push(result.read::<String, _>("long_form_tag").unwrap());
-        // Long term pattern would be to just use long or short form locations
-        // and avoid using the default tag name
         tags.push(result.read::<String, _>("tag").unwrap());
     }
-    let all_tags = vec![long_form, short_form, tags].concat();
+    let all_tags = vec![short_form, tags].concat();
     all_tags
 }
 

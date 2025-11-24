@@ -3,7 +3,7 @@ use std::env::{self};
 
 use chrono::{prelude::*, DateTime, Local, NaiveDate, TimeDelta};
 use sidt::db::*;
-use sidt::{assign_read_subarg, check_tag, get_date, get_help, update_date, ReadSubArg};
+use sidt::{assign_read_subarg, check_tag, get_date, get_help, is_reserved_value, update_date, ReadSubArg};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -111,6 +111,15 @@ fn main() {
                 // TODO: Allow user to create a long form and short form of the tag
                 // E.g. -m & --movie
                 let tag: &String = &args[2];
+                if is_reserved_value(tag){
+                    println!("Tag is already a reserved flag...");
+                }
+                else {
+                    create_tag(tag);
+                }
+                // -t movie -a m
+                // this sets a long form and a short form
+
                 // Create a tag for quick references in future
                 // For example, lets say we want to create a tag to flag movies we've watched
                 // We can create a movie tag with: sidt -t movie
@@ -123,7 +132,7 @@ fn main() {
                 // TODO: Re-write this to handle specific args
                 // let date_time = Local::now();
                 // let formatted_date = date_time.format("%Y-%m-%d").to_string();
-                create_tag(tag);
+
             }
             &_ => {
                 // Try to handle Date arg
