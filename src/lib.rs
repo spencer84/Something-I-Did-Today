@@ -1,6 +1,10 @@
+use crate::db::{
+    change_date, get_tags, read_all_entries, read_selected_entries, read_selected_tags,
+};
+use crate::Context::MainEntry;
+use chrono::{prelude::*, DateTime, Local, NaiveDate, TimeDelta};
 use std::num::ParseIntError;
-use chrono::{prelude::*, NaiveDate, TimeDelta, DateTime, Local};
-use crate::db::{change_date, get_tags, read_all_entries, read_selected_entries, read_selected_tags};
+use std::slice::Iter;
 
 pub mod db;
 pub mod settings;
@@ -15,7 +19,23 @@ pub fn is_flag_pattern(arg: &String) -> bool {
 }
 
 pub fn is_reserved_value(tag: &String) -> bool {
-    let reserved_values = ["e","edit","r","read","help","y","yesterday","d","delete","cd","change-date","l","last","s","search"];
+    let reserved_values = [
+        "e",
+        "edit",
+        "r",
+        "read",
+        "help",
+        "y",
+        "yesterday",
+        "d",
+        "delete",
+        "cd",
+        "change-date",
+        "l",
+        "last",
+        "s",
+        "search",
+    ];
     reserved_values.contains(&tag.as_str())
 }
 
@@ -221,7 +241,7 @@ fn month_is_valid(month: u32) -> bool {
     }
 }
 
-// Check if year is valid (this is somewhat subjectve--what if someone wants to record what they did back in 1998; that's valid year...Maybe have an config option for this later?)
+// Check if year is valid (this is somewhat subjectve--what if someone wants to record what they did back in 1998; that's valid year...Maybe have a config option for this later?)
 fn year_is_valid(year: i32) -> bool {
     let local_date: DateTime<Local> = Local::now();
     let current_year = local_date.year();
@@ -266,23 +286,17 @@ pub fn get_help() {
     println!("-cd, --change-date <old> <new>    Change an entry date");
     println!("-t, --tag <tag>                   Create a new tag for grouping entries");
 }
-pub fn update_date(args: Vec<String>) {
-    // Extract second and third args
-
-    let old: Option<&String> = args.get(2);
-
-    let new: Option<&String> = args.get(3);
-
-    if old.is_some() && new.is_some() {
+pub fn update_date(context: &Context, old_date: Option<&String>, new_date: Option<&String>) {
+    if old_date.is_some() && new_date.is_some() {
         // Try to get date values from args
 
-        let old_date = get_date(old.unwrap());
+        let old_date = get_date(old_date.unwrap());
 
-        let new_date = get_date(new.unwrap());
+        let new_date = get_date(new_date.unwrap());
 
         if old_date.is_some() && new_date.is_some() {
             // Apply the changes to the db
-            change_date(&old_date.unwrap(), &new_date.unwrap())
+            change_date(context, &old_date.unwrap(), &new_date.unwrap())
         } else {
             println!("Invalid date args")
         }
@@ -368,6 +382,62 @@ fn print_tags(tag: &String, args: Vec<String>) {
     }
 }
 
+pub enum Context {
+    MainEntry,   // Target the main entries table
+    Tag(String), // Target a specific tag entry
+}
+
+pub fn get_context(next_arg: Option<&String>) -> Option<Context> {
+    match next_arg {
+        Some(arg) => {
+            let possible_tag = check_tag(&arg);
+            match possible_tag {
+                Some(tag) => Some(Context::Tag(tag)),
+                None => Some(MainEntry),
+            }
+        }
+        _ => None,
+    }
+}
+
+pub fn build_entry(context: Context, first_arg: &String, args: Iter<String>) -> Entry {
+    // Check if date
+    let mut entry: Entry = Entry {
+        date: "".to_string(),
+        entry: "".to_string(),
+        context,
+        datetime: Default::default(),
+    };
+    let possible_date = get_date(&first_arg);
+    match possible_date {
+        Some(date) => {
+            let naive_date = NaiveDate::parse_from_str(&date, "%Y-%m-%d").unwrap();
+            let naive_datetime = naive_date.and_time(NaiveTime::default());
+            let date_time = Local.from_local_datetime(&naive_datetime).unwrap();
+            entry.date = date;
+            entry.entry = args.cloned().collect::<Vec<String>>().join(" ");
+            entry.datetime = date_time;
+            entry
+        }
+        None => {
+            let date_time = Local::now();
+            let formatted_date = date_time.format("%Y-%m-%d").to_string();
+            let mut entry_vec = vec![first_arg.clone()];
+            entry_vec.append(&mut args.cloned().collect::<Vec<String>>());
+            entry.date = formatted_date;
+            entry.entry = entry_vec.join(" ");
+            entry.datetime = date_time;
+            entry
+        }
+    }
+}
+
+pub struct Entry {
+    pub date: String,
+    pub entry: String,
+    pub context: Context,
+    pub datetime: DateTime<Local>,
+}
 /// sidt -r -t
 /// sidt -r
 /// Sub args for the read arg

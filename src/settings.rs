@@ -32,4 +32,3 @@ fn test_default_home_dir() {
     println!("{:?}", home_dir);
     assert_eq!(home_dir, "/Users/samspencer");
 }
-

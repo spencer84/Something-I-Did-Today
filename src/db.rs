@@ -1,9 +1,10 @@
 // Set up Sqlite database if not already configured
+use crate::settings::read_settings;
+use crate::Context::MainEntry;
+use crate::{is_reserved_value, Context, Entry};
 use colored::Colorize;
 use sqlite::Connection;
 use std::fs::create_dir;
-use crate::is_reserved_value;
-use crate::settings::read_settings;
 
 fn get_connection() -> Result<Connection, sqlite::Error> {
     let db_path = read_settings().home_dir + "/.sidt/journal.db";
@@ -38,50 +39,85 @@ pub fn create_entry_table() {
     let _ = connection.execute(query).unwrap();
 }
 
-pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i64) {
+pub fn write_entry(entry: Entry) {
     let connection = get_connection().unwrap();
     // Read db to see if there is an existing entry
 
     // If existing entry, simply append to the original entry
 
-    let query = format! {"SELECT * from entries where date == '{}';", date};
+    match entry.context {
+        MainEntry => {
+            let query = format! {"SELECT * from entries where date == '{}';", entry.date};
 
-    let result = connection.prepare(query);
-    match result {
-        Ok(_) => (),
-        Err(_) => create_entry_table(),
-    }
-    let any: Vec<Result<sqlite::Row, sqlite::Error>> = result.unwrap().iter().collect();
+            let result = connection.prepare(query);
+            match result {
+                Ok(_) => (),
+                Err(_) => create_entry_table(),
+            }
+            let any: Vec<Result<sqlite::Row, sqlite::Error>> = result.unwrap().iter().collect();
 
-    if any.len() >= 1 {
-        let update_statement = format!(
-            "
-    UPDATE entries SET entry = entry || ' ' || '{entry}' WHERE date == '{}';
-    UPDATE entries SET last_updated = '{last_updated}' WHERE date == '{}';
+            if any.len() >= 1 {
+                let update_statement = format!(
+                    "
+    UPDATE entries SET entry = entry || ' ' || '{1}' WHERE date == '{0}';
+    UPDATE entries SET last_updated = '{2}' WHERE date == '{0}';
     ",
-            date, date
-        );
+                    entry.date, entry.entry, entry.datetime
+                );
 
-        let _ = connection.execute(update_statement);
-    } else {
-        let insert_statement = format!(
-            "
-    INSERT INTO entries VALUES ('{date}','{entry}','{entry_date}','{last_updated}');
-    "
-        );
+                let _ = connection.execute(update_statement);
+            } else {
+                let insert_statement = format!(
+                    "
+    INSERT INTO entries VALUES ('{0}','{1}','{2}','{3}')",
+                    entry.date, entry.entry, entry.date, entry.datetime
+                );
 
-        let _ = connection.execute(insert_statement);
+                let _ = connection.execute(insert_statement);
+            }
+        }
+        Context::Tag(tag) => {
+            let query = format! {"SELECT * from tag_content where date == '{0}' and tag == '{1}';", entry.date, tag};
 
-        // Handle failure to write to database due to it not existing
-        // TODO: Re-write this to handle more specific error instances.
+            let result = connection.prepare(query);
+            match result {
+                Ok(_) => (),
+                Err(_) => create_entry_table(),
+            }
+            let any: Vec<Result<sqlite::Row, sqlite::Error>> = result.unwrap().iter().collect();
+
+            if any.len() >= 1 {
+                let update_statement = format!(
+                    "
+    UPDATE tag_content SET entry = entry || ' ' || '{1}' WHERE date == '{0}' AND tag == '{3}';
+    UPDATE tag_content SET last_updated = '{2}' WHERE date == '{0}' AND tag == '{3}';
+    ",
+                    entry.date, entry.entry, entry.datetime, tag
+                );
+
+                let _ = connection.execute(update_statement);
+            } else {
+                let insert_statement = format!(
+                    "
+    INSERT INTO tag_content VALUES ('{0}','{1}','{2}','{3}','{4}') ",
+                    entry.date, tag, entry.entry, entry.date, entry.datetime
+                );
+
+                let _ = connection.execute(insert_statement);
+            }
+            // Handle failure to write to database due to it not existing
+            // TODO: Re-write this to handle more specific error instances.
+        }
     }
 }
 
 pub fn update_entry(date: String, entry: String, last_updated: i64) {
     let connection = get_connection().unwrap();
-    let query = format!("
+    let query = format!(
+        "
     UPDATE entries SET entry = '{entry}',last_updated = '{last_updated}'  WHERE date == '{date}';
-");
+"
+    );
 
     let _ = connection.execute(query);
 }
@@ -177,15 +213,17 @@ DELETE FROM entries WHERE date == '{}';
 
 // pub fn delete_date_range()
 
-pub fn get_search_results(search_phrase: &String) {
-    let connection = get_connection().unwrap();
+pub fn get_search_results(context: Context, search_phrase: &String) {
+    let query = match context {
+        MainEntry => {
+            format!("SELECT date, entry FROM entries WHERE entry LIKE == '%{search_phrase}%';")
+        }
+        Context::Tag(tag) => format!(
+            "SELECT date, entry FROM tags WHERE tag == '{tag}' AND entry LIKE '%{search_phrase}%';"
+        ),
+    };
 
-    let query = format!(
-        "
-SELECT date, entry FROM entries WHERE entry LIKE '%{}%';
-",
-        search_phrase
-    );
+    let connection = get_connection().unwrap();
 
     let result = connection.prepare(query);
 
@@ -202,14 +240,19 @@ SELECT date, entry FROM entries WHERE entry LIKE '%{}%';
     }
 }
 
-pub fn change_date(old_date: &String, new_date: &String) {
+pub fn change_date(context: &Context, old_date: &String, new_date: &String) {
     let connection = get_connection().unwrap();
 
-    let query: String = format!(
-        "
-UPDATE entries SET date = '{new_date}' WHERE date == '{old_date}'
-"
-    );
+    let query: String = match context {
+        MainEntry => {
+            format!("UPDATE entries SET date = '{new_date}' WHERE date == '{old_date}'")
+        }
+        Context::Tag(tag) => {
+            format!(
+                "UPDATE tag_content SET date = '{new_date}' WHERE date == '{old_date}' AND tag == '{tag}'"
+            )
+        }
+    };
 
     connection.execute(query).unwrap();
 }
@@ -230,20 +273,19 @@ fn create_tag_tables() {
     connection.execute(query_tags).unwrap();
 }
 
-pub fn create_tag(tag: &String, short_tag: Option<&String>)  {
+pub fn create_tag(tag: &String, short_tag: Option<&String>) {
     let connection = get_connection().unwrap();
     let query: String = match short_tag {
         Some(short_tag) => {
             if is_reserved_value(&short_tag) {
                 println!("Tag is already a reserved flag...");
                 "SELECT tag from tags;".to_string() // Workaround; need to refactor
-            }
-            else{
+            } else {
                 format!("INSERT INTO tags VALUES ('{tag}','{short_tag}','');")
             }
         }
         None => {
-             format!("INSERT INTO tags VALUES ('{tag}','','');")
+            format!("INSERT INTO tags VALUES ('{tag}','','');")
         }
     };
 
@@ -306,4 +348,3 @@ pub fn get_tags() -> Vec<String> {
     let all_tags = vec![short_form, tags].concat();
     all_tags
 }
-
