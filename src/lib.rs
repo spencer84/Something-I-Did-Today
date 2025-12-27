@@ -388,8 +388,10 @@ pub enum Context {
 }
 
 pub fn get_context(next_arg: Option<&String>) -> Option<Context> {
+    log::trace!("Getting context");
     match next_arg {
         Some(arg) => {
+            log::info!("Getting context from {}", arg);
             let possible_tag = check_tag(&arg);
             match possible_tag {
                 Some(tag) => Some(Context::Tag(tag)),

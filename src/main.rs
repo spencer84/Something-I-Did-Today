@@ -7,12 +7,17 @@ use sidt::{
 };
 use std::env::{self};
 use std::slice::Iter;
+use log;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
+
     let mut args_iter = args.iter();
     let _ = args_iter.next(); // Skip the first env arg
-
+    env_logger::Builder::from_default_env()
+        .filter_level(log::LevelFilter::Trace)  // Show all levels
+        .init();
+    log::trace!("args: {:?}", args);
     if args.len() < 2 {
         get_help()
     } else {
@@ -189,6 +194,7 @@ fn main() {
                 match context {
                     Context::MainEntry => {
                         let entry = build_entry(Context::MainEntry, first_arg, args);
+                        write_entry(entry);
                     }
                     Context::Tag(tag) => {
                         let next_arg = args.next();
