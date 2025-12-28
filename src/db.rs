@@ -216,7 +216,7 @@ DELETE FROM entries WHERE date == '{}';
 pub fn get_search_results(context: Context, search_phrase: &String) {
     let query = match context {
         MainEntry => {
-            format!("SELECT date, entry FROM entries WHERE entry LIKE == '%{search_phrase}%';")
+            format!("SELECT date, entry FROM entries WHERE entry LIKE '%{search_phrase}%';")
         }
         Context::Tag(tag) => format!(
             "SELECT date, entry FROM tags WHERE tag == '{tag}' AND entry LIKE '%{search_phrase}%';"

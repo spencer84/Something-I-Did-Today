@@ -2,7 +2,7 @@ use chrono::{prelude::*, DateTime, Local, NaiveDate, TimeDelta};
 use rustyline::DefaultEditor;
 use sidt::db::*;
 use sidt::{
-    assign_read_subarg, build_entry, check_tag, get_context, get_date, get_help, is_reserved_value,
+    assign_read_subarg, build_entry, get_context, get_date, get_help, is_reserved_value,
     update_date, Context, ReadSubArg,
 };
 use std::env::{self};
@@ -13,7 +13,8 @@ fn main() {
     let args: Vec<String> = env::args().collect();
 
     let mut args_iter = args.iter();
-    let _ = args_iter.next(); // Skip the first env arg
+    args_iter.next(); // Skip the first env arg
+    // Initialize logger
     env_logger::Builder::from_default_env()
         .filter_level(log::LevelFilter::Trace)  // Show all levels
         .init();
@@ -26,7 +27,6 @@ fn main() {
 
     fn parse_args(mut args: Iter<String>) {
         let first_arg: &String = args.next().unwrap();
-        let current_time: i64 = Local::now().timestamp();
 
         // Match args
         match first_arg.as_str() {
@@ -56,7 +56,9 @@ fn main() {
                 let context = get_context(next_arg);
                 match context {
                     Some(context) => {
-                        let search_phrase: Vec<String> = args.cloned().collect::<Vec<String>>(); // TODO take full results
+                        let mut search_phrase = vec![next_arg.unwrap().clone()];
+                        search_phrase.append(&mut args.cloned().collect::<Vec<String>>());
+                        log::info!("search phrase: {:?}", &search_phrase.join(" "));
                         if search_phrase.is_empty() {
                             println!("Search term required...");
                         } else {
@@ -133,6 +135,7 @@ fn main() {
                     Some(_) => {
                         let date = get_date(&second_arg.unwrap());
                         let entry = read_entry(date.clone()).unwrap();
+                        let current_time: i64 = Local::now().timestamp();
                         let mut editor = DefaultEditor::new().unwrap();
                         match editor.readline_with_initial("", (&entry, "")) {
                             Ok(entry_result) => {
@@ -209,52 +212,6 @@ fn main() {
                         }
                     }
                 }
-
-                // match possible_date {
-                //     Some(_) => {
-                //         // Can we move this logic to the date parsing function?
-                //         formatted_date = possible_date.unwrap();
-                //         let naive_date =
-                //             NaiveDate::parse_from_str(&formatted_date, "%Y-%m-%d").unwrap();
-                //         let naive_datetime = naive_date.and_time(NaiveTime::default());
-                //         date_time = Local.from_local_datetime(&naive_datetime).unwrap();
-                //         // Check for tags
-                //         let possible_tag: Option<String> = check_tag(args.next());
-                //         match possible_tag {
-                //             Some(tag) => {
-                //                 println!("Tag: {}", &tag);
-                //                 let tag_entry = args.cloned().collect().join(" ");
-                //                 write_tag(
-                //                     formatted_date,
-                //                     &tag,
-                //                     tag_entry,
-                //                     date_time.timestamp(),
-                //                     current_time,
-                //                 )
-                //             }
-                //             None => {
-                //                 let entry: String = args.cloned().collect::<Vec<String>>().join(" ");
-                //                 write_entry(
-                //                     formatted_date,
-                //                     entry,
-                //                     date_time.timestamp(),
-                //                     current_time,
-                //                 );
-                //             }
-                //         } = Entry{
-                //         date: None,
-                //         entry: "".to_string(),
-                //         None,
-                //         datetime: Local::now()
-                //     };
-                //     }
-                //     _ => {
-                //         date_time = Local::now();
-                //         formatted_date = date_time.format("%Y-%m-%d").to_string();
-                //         let entry = args.cloned().collect::<Vec<String>>().join(" ");
-                //         write_entry(formatted_date, entry, date_time.timestamp(), current_time);
-                //     }
-                // }
             }
         };
     }

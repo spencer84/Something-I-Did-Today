@@ -284,7 +284,7 @@ pub fn get_help() {
     println!("-l, --last                        Read last entry");
     println!("-e, --edit <date>                 Edit a previous entry");
     println!("-cd, --change-date <old> <new>    Change an entry date");
-    println!("-t, --tag <tag>                   Create a new tag for grouping entries");
+    println!("-t, --tag <tag> -a <short tag>    Create a new tag for grouping entries");
 }
 pub fn update_date(context: &Context, old_date: Option<&String>, new_date: Option<&String>) {
     if old_date.is_some() && new_date.is_some() {
@@ -467,10 +467,14 @@ pub fn assign_read_subarg(arg_option: &Option<&String>) -> ReadSubArg {
     // if not, then we've exhausted the valid arguments for the read flag
     match arg_option {
         Some(arg) => {
+            log::info!("Reading context from {}", &arg);
             if is_flag_pattern(&arg) {
                 let possible_tag = check_tag(&arg);
                 match possible_tag {
-                    Some(tag) => ReadSubArg::Tag(tag),
+                    Some(tag) => {
+                        log::info!("Tag assignment to {}", &tag);
+                        ReadSubArg::Tag(tag)
+                    },
                     None => ReadSubArg::None,
                 }
             } else if contains_numbers(&arg) {
