@@ -1,305 +1,350 @@
 // Set up Sqlite database if not already configured
-pub mod db {
-    use crate::settings::settings::read_settings;
-    use colored::Colorize;
-    use sqlite::Connection;
-    use std::fs::create_dir;
+use crate::settings::read_settings;
+use crate::Context::MainEntry;
+use crate::{is_reserved_value, Context, Entry};
+use colored::Colorize;
+use sqlite::Connection;
+use std::fs::create_dir;
 
-    fn get_connection() -> Result<Connection, sqlite::Error> {
-        let db_path = read_settings().home_dir + "/.sidt/journal.db";
-        let connection_result = sqlite::open(db_path);
+fn get_connection() -> Result<Connection, sqlite::Error> {
+    let db_path = read_settings().home_dir + "/.sidt/journal.db";
+    let connection_result = sqlite::open(db_path);
 
-        match connection_result {
-            Ok(connection) => Ok(connection),
-            Err(_) => {
-                create_entry_table();
-                let subsequent_connection = get_connection();
-                subsequent_connection
+    match connection_result {
+        Ok(connection) => Ok(connection),
+        Err(_) => {
+            create_entry_table();
+            let subsequent_connection = get_connection();
+            subsequent_connection
+        }
+    }
+}
+pub fn create_entry_table() {
+    let settings = read_settings();
+    let db_dir = settings.home_dir + "/.sidt";
+    let _create_sidt_dir_result = create_dir(&db_dir);
+    let connection = sqlite::open(db_dir + "/journal.db").unwrap();
+
+    /* Notes on Schema
+    date - TEXT - Formatted date string for the entry date. Acts as Primary Key.
+    entry - TEXT - The user's entry for the given day.
+    entry_date - INTEGER - When the first entry for the date was created. Unix timestamp value (SQLite doesn't support date/datetime types)
+    last_updated - INTEGER - The date/time of last update to this record. Unix timestamp value.
+
+    */
+
+    let query = "
+    CREATE TABLE entries (date TEXT, entry TEXT, entry_date INTEGER, last_updated INTEGER);
+";
+    let _ = connection.execute(query).unwrap();
+}
+
+pub fn write_entry(entry: Entry) {
+    let connection = get_connection().unwrap();
+    // Read db to see if there is an existing entry
+
+    // If existing entry, simply append to the original entry
+
+    match entry.context {
+        MainEntry => {
+            let query = format! {"SELECT * from entries where date == '{}';", entry.date};
+
+            let result = connection.prepare(query);
+            match result {
+                Ok(_) => (),
+                Err(_) => create_entry_table(),
+            }
+            let any: Vec<Result<sqlite::Row, sqlite::Error>> = result.unwrap().iter().collect();
+
+            if any.len() >= 1 {
+                let update_statement = format!(
+                    "
+    UPDATE entries SET entry = entry || ' ' || '{1}' WHERE date == '{0}';
+    UPDATE entries SET last_updated = '{2}' WHERE date == '{0}';
+    ",
+                    entry.date, entry.entry, entry.datetime
+                );
+
+                let _ = connection.execute(update_statement);
+            } else {
+                let insert_statement = format!(
+                    "
+    INSERT INTO entries VALUES ('{0}','{1}','{2}','{3}')",
+                    entry.date, entry.entry, entry.date, entry.datetime
+                );
+
+                let _ = connection.execute(insert_statement);
             }
         }
-    }
-    pub fn create_entry_table() {
-        let settings = read_settings();
-        let db_dir = settings.home_dir + "/.sidt";
-        let _create_sidt_dir_result = create_dir(&db_dir);
-        let connection = sqlite::open(db_dir + "/journal.db").unwrap();
+        Context::Tag(tag) => {
+            let query = format! {"SELECT * from tag_content where date == '{0}' and tag == '{1}';", entry.date, tag};
 
-        /* Notes on Schema
-        date - TEXT - Formatted date string for the entry date. Acts as Primary Key.
-        entry - TEXT - The user's entry for the given day.
-        entry_date - INTEGER - When the first entry for the date was created. Unix timestamp value (SQLite doesn't support date/datetime types)
-        last_updated - INTEGER - The date/time of last update to this record. Unix timestamp value.
+            let result = connection.prepare(query);
+            match result {
+                Ok(_) => (),
+                Err(_) => create_entry_table(),
+            }
+            let any: Vec<Result<sqlite::Row, sqlite::Error>> = result.unwrap().iter().collect();
 
-        */
+            if any.len() >= 1 {
+                let update_statement = format!(
+                    "
+    UPDATE tag_content SET entry = entry || ' ' || '{1}' WHERE date == '{0}' AND tag == '{3}';
+    UPDATE tag_content SET last_updated = '{2}' WHERE date == '{0}' AND tag == '{3}';
+    ",
+                    entry.date, entry.entry, entry.datetime, tag
+                );
 
-        let query = "
-        CREATE TABLE entries (date TEXT, entry TEXT, entry_date INTEGER, last_updated INTEGER);
-    ";
-        let _ = connection.execute(query).unwrap();
-    }
+                let _ = connection.execute(update_statement);
+            } else {
+                let insert_statement = format!(
+                    "
+    INSERT INTO tag_content VALUES ('{0}','{1}','{2}','{3}','{4}') ",
+                    entry.date, tag, entry.entry, entry.date, entry.datetime
+                );
 
-    pub fn write_entry(date: String, entry: String, entry_date: i64, last_updated: i64) {
-        let connection = get_connection().unwrap();
-        // Read db to see if there is an existing entry
-
-        // If existing entry, simply append to the original entry
-
-        let query = format! {"SELECT * from entries where date == '{}';", date};
-
-        let result = connection.prepare(query);
-        match result {
-            Ok(_) => (),
-            Err(_) => create_entry_table(),
-        }
-        let any: Vec<Result<sqlite::Row, sqlite::Error>> = result.unwrap().iter().collect();
-
-        if any.len() >= 1 {
-            let update_statement = format!(
-                "
-        UPDATE entries SET entry = entry || ' ' || '{entry}' WHERE date == '{}';
-        UPDATE entries SET last_updated = '{last_updated}' WHERE date == '{}';
-        ",
-                date, date
-            );
-
-            let _ = connection.execute(update_statement);
-        } else {
-            let insert_statement = format!(
-                "
-        INSERT INTO entries VALUES ('{date}','{entry}','{entry_date}','{last_updated}');
-        "
-            );
-
-            let _ = connection.execute(insert_statement);
-
+                let _ = connection.execute(insert_statement);
+            }
             // Handle failure to write to database due to it not existing
             // TODO: Re-write this to handle more specific error instances.
         }
     }
+}
 
-    pub fn update_entry(date: String, entry: String, last_updated: i64) {
-        let connection = get_connection().unwrap();
-        let query = format!("
-        UPDATE entries SET entry = '{entry}',last_updated = '{last_updated}'  WHERE date == '{date}';
-    ");
+pub fn update_entry(date: String, entry: String, last_updated: i64) {
+    let connection = get_connection().unwrap();
+    let query = format!(
+        "
+    UPDATE entries SET entry = '{entry}',last_updated = '{last_updated}'  WHERE date == '{date}';
+"
+    );
 
-        let _ = connection.execute(query);
+    let _ = connection.execute(query);
+}
+
+pub fn read_last_entry() {
+    read_selected_entries(1);
+}
+
+pub fn read_selected_entries(rows: usize) -> () {
+    let connection = get_connection().unwrap();
+
+    let query = format!(
+        "
+    SELECT * FROM entries ORDER BY entry_date DESC LIMIT {rows};
+"
+    );
+
+    let mut result = connection.prepare(query).unwrap();
+
+    while let Ok(sqlite::State::Row) = result.next() {
+        let date = result.read::<String, _>("date").unwrap();
+
+        let entry = result.read::<String, _>("entry").unwrap();
+
+        // let entry_date = result.read::<String, _>("entry_date").unwrap();
+
+        // let last_updated = result.read::<String, _>("last_updated").unwrap();
+
+        println!("{} {}", date.blue().bold(), entry);
     }
+}
 
-    pub fn read_last_entry() {
-        read_selected_entries(1);
-    }
-
-    pub fn read_selected_entries(rows: usize) -> () {
-        let connection = get_connection().unwrap();
-
-        let query = format!(
-            "
-        SELECT * FROM entries ORDER BY entry_date DESC LIMIT {rows};
-    "
-        );
-
-        let mut result = connection.prepare(query).unwrap();
-
-        while let Ok(sqlite::State::Row) = result.next() {
-            let date = result.read::<String, _>("date").unwrap();
-
-            let entry = result.read::<String, _>("entry").unwrap();
-
-            // let entry_date = result.read::<String, _>("entry_date").unwrap();
-
-            // let last_updated = result.read::<String, _>("last_updated").unwrap();
-
-            println!("{} {}", date.blue().bold(), entry);
-        }
-    }
-
-    pub fn read_entry(date: Option<String>) -> Result<String, String> {
-        match date {
-            Some(date) => {
-                let connection = get_connection().unwrap();
-                let query: String = format!(
-                    "
-            SELECT entry FROM entries WHERE date == '{}';",
-                    date
-                );
-                let result = connection.prepare(query);
-                if result.is_ok() {
-                    let mut data = result.unwrap();
-                    println!("Column names: {:?}", data.column_names().to_vec());
-                    if let Ok(sqlite::State::Row) = data.next() {
-                        Ok(data.read::<String, _>("entry").unwrap())
-                    } else {
-                        Err(String::from("Entry not found"))
-                    }
+pub fn read_entry(date: Option<String>) -> Result<String, String> {
+    match date {
+        Some(date) => {
+            let connection = get_connection().unwrap();
+            let query: String = format!(
+                "
+        SELECT entry FROM entries WHERE date == '{}';",
+                date
+            );
+            let result = connection.prepare(query);
+            if result.is_ok() {
+                let mut data = result.unwrap();
+                if let Ok(sqlite::State::Row) = data.next() {
+                    Ok(data.read::<String, _>("entry").unwrap())
                 } else {
                     Err(String::from("Entry not found"))
                 }
-            }
-            None => Err("No date specified.").expect("TODO: panic message"),
-        }
-    }
-    pub fn read_all_entries() {
-        let connection = get_connection().unwrap();
-
-        let query = "SELECT * FROM entries ORDER BY entry_date DESC;";
-
-        let result = connection.prepare(query);
-
-        if result.is_ok() {
-            let mut data = result.unwrap();
-
-            while let Ok(sqlite::State::Row) = data.next() {
-                let date = data.read::<String, _>("date").unwrap();
-
-                let entry = data.read::<String, _>("entry").unwrap();
-
-                // let entry_date = result.read::<String, _>("entry_date").unwrap();
-
-                //let last_updated = result.read::<String, _>("last_updated").unwrap();
-                // TODO: Provide ability to customise colour choice
-                println!("{} {}", date.blue().bold(), entry);
+            } else {
+                Err(String::from("Entry not found"))
             }
         }
+        None => Err("No date specified.").expect("TODO: panic message"),
     }
+}
+pub fn read_all_entries() {
+    let connection = get_connection().unwrap();
 
-    pub fn delete_selected_entry(date: String) {
-        let connection = get_connection().unwrap();
+    let query = "SELECT * FROM entries ORDER BY entry_date DESC;";
 
-        let query = format!(
-            "
-    DELETE FROM entries WHERE date == '{}';
-    ",
-            date
-        );
+    let result = connection.prepare(query);
 
-        connection.execute(query).unwrap();
+    if result.is_ok() {
+        let mut data = result.unwrap();
+
+        while let Ok(sqlite::State::Row) = data.next() {
+            let date = data.read::<String, _>("date").unwrap();
+
+            let entry = data.read::<String, _>("entry").unwrap();
+
+            // let entry_date = result.read::<String, _>("entry_date").unwrap();
+
+            //let last_updated = result.read::<String, _>("last_updated").unwrap();
+            // TODO: Provide ability to customise colour choice
+            println!("{} {}", date.blue().bold(), entry);
+        }
     }
+}
 
-    // pub fn delete_date_range()
+pub fn delete_selected_entry(date: String) {
+    let connection = get_connection().unwrap();
 
-    pub fn get_search_results(search_phrase: &String) {
-        let connection = get_connection().unwrap();
+    let query = format!(
+        "
+DELETE FROM entries WHERE date == '{}';
+",
+        date
+    );
 
-        let query = format!(
-            "
-    SELECT date, entry FROM entries WHERE entry LIKE '%{}%';
-    ",
-            search_phrase
-        );
+    connection.execute(query).unwrap();
+}
 
-        let result = connection.prepare(query);
+// pub fn delete_date_range()
 
-        if result.is_ok() {
-            let mut data = result.unwrap();
+pub fn get_search_results(context: Context, search_phrase: &String) {
+    let query = match context {
+        MainEntry => {
+            format!("SELECT date, entry FROM entries WHERE entry LIKE '%{search_phrase}%';")
+        }
+        Context::Tag(tag) => format!(
+            "SELECT date, entry FROM tags WHERE tag == '{tag}' AND entry LIKE '%{search_phrase}%';"
+        ),
+    };
 
-            while let Ok(sqlite::State::Row) = data.next() {
-                let date = data.read::<String, _>("date").unwrap();
+    let connection = get_connection().unwrap();
 
-                let entry = data.read::<String, _>("entry").unwrap();
+    let result = connection.prepare(query);
 
-                println!("{} {}", date, entry);
+    if result.is_ok() {
+        let mut data = result.unwrap();
+
+        while let Ok(sqlite::State::Row) = data.next() {
+            let date = data.read::<String, _>("date").unwrap();
+
+            let entry = data.read::<String, _>("entry").unwrap();
+
+            println!("{} {}", date, entry);
+        }
+    }
+}
+
+pub fn change_date(context: &Context, old_date: &String, new_date: &String) {
+    let connection = get_connection().unwrap();
+
+    let query: String = match context {
+        MainEntry => {
+            format!("UPDATE entries SET date = '{new_date}' WHERE date == '{old_date}'")
+        }
+        Context::Tag(tag) => {
+            format!(
+                "UPDATE tag_content SET date = '{new_date}' WHERE date == '{old_date}' AND tag == '{tag}'"
+            )
+        }
+    };
+
+    connection.execute(query).unwrap();
+}
+
+fn create_tag_tables() {
+    let connection = get_connection().unwrap();
+
+    // Similar to entry table; log of all tag usage and content
+    let query_tag_content = "\
+    CREATE TABLE tag_content\
+    (date TEXT, tag TEXT, tag_content TEXT, entry_date INTEGER, last_updated INTEGER);";
+    connection.execute(query_tag_content).unwrap();
+
+    // Summary table about each tag
+    let query_tags = "\
+    CREATE TABLE tags\
+    (tag TEXT, long_form_tag TEXT, short_form_tag TEXT, description TEXT);";
+    connection.execute(query_tags).unwrap();
+}
+
+pub fn create_tag(tag: &String, short_tag: Option<&String>) {
+    let connection = get_connection().unwrap();
+    let query: String = match short_tag {
+        Some(short_tag) => {
+            if is_reserved_value(&short_tag) {
+                println!("Tag is already a reserved flag...");
+                "SELECT tag from tags;".to_string() // Workaround; need to refactor
+            } else {
+                format!("INSERT INTO tags VALUES ('{tag}','{short_tag}','');")
             }
         }
-    }
+        None => {
+            format!("INSERT INTO tags VALUES ('{tag}','','');")
+        }
+    };
 
-    pub fn change_date(old_date: &String, new_date: &String) {
-        let connection = get_connection().unwrap();
-
-        let query: String = format!(
-            "
-    UPDATE entries SET date = '{new_date}' WHERE date == '{old_date}'
-    "
-        );
-
-        connection.execute(query).unwrap();
-    }
-
-    fn create_tag_tables() {
-        let connection = get_connection().unwrap();
-
-        // Similar to entry table; log of all tag usage and content
-        let query_tag_content = "\
-        CREATE TABLE tag_content\
-        (date TEXT, tag TEXT, tag_content TEXT, entry_date INTEGER, last_updated INTEGER);";
-        connection.execute(query_tag_content).unwrap();
-
-        // Summary table about each tag
-        let query_tags = "\
-        CREATE TABLE tags\
-        (tag TEXT, long_form_tag TEXT, short_form_tag TEXT, description TEXT);";
-        connection.execute(query_tags).unwrap();
-    }
-
-    pub fn create_tag(tag: &String) {
-        let connection = get_connection().unwrap();
-        let query = format!(
-            "INSERT INTO tags VALUES ('{}','','','');",
-            tag
-        );
-        let result = connection.execute(query);
-        if result.is_err() {
-            let error_message = result.err().unwrap();
-            if error_message.to_string() == "no such table: tags" {
-                create_tag_tables();
-            }
+    let result = connection.execute(query);
+    if result.is_err() {
+        let error_message = result.err().unwrap();
+        if error_message.to_string() == "no such table: tags" {
+            create_tag_tables();
         }
     }
-    pub fn write_tag(
-        date: String,
-        tag: &String,
-        tag_content: &String,
-        entry_date: i64,
-        last_updated: i64,
-    ) {
-        let connection = get_connection().unwrap();
+}
+pub fn write_tag(
+    date: String,
+    tag: &String,
+    tag_content: &String,
+    entry_date: i64,
+    last_updated: i64,
+) {
+    let connection = get_connection().unwrap();
 
-        let query = format!("INSERT INTO tag_content VALUES ('{date}','{tag}','{tag_content}','{entry_date}','{last_updated}');");
-        connection.execute(query).unwrap();
+    let query = format!("INSERT INTO tag_content VALUES ('{date}','{tag}','{tag_content}','{entry_date}','{last_updated}');");
+    connection.execute(query).unwrap();
+}
+
+pub fn read_selected_tags(tag: &String, number: usize) -> () {
+    let connection = get_connection().unwrap();
+    let query: String = format!(
+        "SELECT date, tag_content FROM tag_content WHERE tag == '{tag}' ORDER BY entry_date DESC LIMIT {number};",
+    );
+    let mut result = connection.prepare(query).unwrap();
+
+    while let Ok(sqlite::State::Row) = result.next() {
+        let date = result.read::<String, _>("date").unwrap();
+
+        let tag_content = result.read::<String, _>("tag_content").unwrap();
+
+        println!("{} {}", date.blue().bold(), tag_content);
     }
+}
 
-    pub fn read_selected_tags(tag: &String, number: usize) -> () {
-        let connection = get_connection().unwrap();
-        let query: String = format!(
-            "SELECT date, tag_content FROM tag_content WHERE tag == '{tag}' ORDER BY entry_date DESC LIMIT {number};",
-        );
-        let mut result = connection.prepare(query).unwrap();
+pub fn get_tags() -> Vec<String> {
+    let connection = get_connection().unwrap();
 
-            while let Ok(sqlite::State::Row) = result.next() {
-            let date = result.read::<String, _>("date").unwrap();
-
-            let tag_content = result.read::<String, _>("tag_content").unwrap();
-
-            println!("{} {}", date.blue().bold(), tag_content);
+    let query = "SELECT tag,short_form_tag FROM tags";
+    let mut result_raw = connection.prepare(query);
+    let mut result = match result_raw {
+        Ok(result) => result,
+        Err(err) => {
+            create_tag_tables();
+            return get_tags();
         }
+    };
+
+    let mut short_form: Vec<String> = Vec::new();
+    let mut tags: Vec<String> = Vec::new();
+    while let Ok(sqlite::State::Row) = result.next() {
+        short_form.push(result.read::<String, _>("short_form_tag").unwrap());
+        tags.push(result.read::<String, _>("tag").unwrap());
     }
-
-
-    pub fn get_tags() -> Vec<String> {
-        let connection = get_connection().unwrap();
-
-        let query = "SELECT tag,long_form_tag,short_form_tag FROM tags";
-        let mut result_raw = connection.prepare(query);
-        let mut result = match result_raw{
-            Ok(result) => result,
-            Err(err) => {
-                create_tag_tables();
-                return get_tags();
-            }
-        };
-
-        let mut short_form: Vec<String> = Vec::new();
-        let mut long_form: Vec<String> = Vec::new();
-        let mut tags: Vec<String> = Vec::new();
-        while let Ok(sqlite::State::Row) = result.next() {
-            short_form.push(result.read::<String, _>("short_form_tag").unwrap());
-            long_form.push(result.read::<String, _>("long_form_tag").unwrap());
-            // Long term pattern would be to just use long or short form locations
-            // and avoid using the default tag name
-            tags.push(result.read::<String, _>("tag").unwrap());
-
-        }
-        let all_tags = vec![long_form, short_form, tags].concat();
-        all_tags
-    }
+    let all_tags = vec![short_form, tags].concat();
+    all_tags
 }
