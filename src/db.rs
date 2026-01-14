@@ -69,8 +69,8 @@ pub fn write_entry(entry: Entry) {
             } else {
                 let insert_statement = format!(
                     "
-    INSERT INTO entries VALUES ('{0}','{1}','{2}','{3}')",
-                    entry.date, entry.entry, entry.date, entry.datetime
+    INSERT INTO entries VALUES ('{0}','{1}','{2}','{2}')",
+                    entry.date, entry.entry, entry.datetime
                 );
 
                 let _ = connection.execute(insert_statement);
@@ -114,9 +114,9 @@ pub fn write_entry(entry: Entry) {
 pub fn update_entry(date: String, entry: String, last_updated: i64) {
     let connection = get_connection().unwrap();
     let query = format!(
-        "
+    "
     UPDATE entries SET entry = '{entry}',last_updated = '{last_updated}'  WHERE date == '{date}';
-"
+    "
     );
 
     let _ = connection.execute(query);
