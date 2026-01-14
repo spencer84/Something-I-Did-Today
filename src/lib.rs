@@ -309,14 +309,14 @@ pub fn update_date(context: &Context, old_date: Option<&String>, new_date: Optio
 pub fn check_tag(arg: &String) -> Option<String> {
     // Get all tags from db
     let tags = get_tags();
-    if arg.contains("--") {
+    if arg.contains("--") && !contains_numbers(&arg) {
         let possible_tag = arg.strip_prefix("--").unwrap().to_string();
         return if tags.contains(&possible_tag) {
             Some(possible_tag.to_string())
         } else {
             None
         };
-    } else if arg.contains("-") {
+    } else if arg.contains("-") && !contains_numbers(&arg)  {
         let possible_tag = arg.strip_prefix("-").unwrap().to_string();
         return if tags.contains(&possible_tag) {
             Some(possible_tag.to_string())
@@ -418,7 +418,7 @@ pub fn build_entry(context: Context, first_arg: &String, args: Iter<String>) -> 
             let date_time = Local.from_local_datetime(&naive_datetime).unwrap();
             entry.date = date;
             entry.entry = args.cloned().collect::<Vec<String>>().join(" ");
-            entry.datetime = date_time;
+            entry.datetime = date_time.timestamp();
             entry
         }
         None => {
@@ -428,7 +428,7 @@ pub fn build_entry(context: Context, first_arg: &String, args: Iter<String>) -> 
             entry_vec.append(&mut args.cloned().collect::<Vec<String>>());
             entry.date = formatted_date;
             entry.entry = entry_vec.join(" ");
-            entry.datetime = date_time;
+            entry.datetime = date_time.timestamp();
             entry
         }
     }
@@ -438,7 +438,7 @@ pub struct Entry {
     pub date: String,
     pub entry: String,
     pub context: Context,
-    pub datetime: DateTime<Local>,
+    pub datetime: i64,
 }
 /// sidt -r -t
 /// sidt -r
