@@ -16,7 +16,6 @@ fn main() {
     args_iter.next(); // Skip the first env arg
     // Initialize logger
     env_logger::Builder::from_default_env()
-        .filter_level(log::LevelFilter::Trace)  // Show all levels
         .init();
     log::trace!("args: {:?}", args);
     if args.len() < 2 {
