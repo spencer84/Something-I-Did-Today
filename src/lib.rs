@@ -440,6 +440,13 @@ pub struct Entry {
     pub context: Context,
     pub datetime: i64,
 }
+
+impl Entry {
+    pub fn set_date(&mut self, date: DateTime<Local>) {
+        self.date = date.format("%Y-%m-%d").to_string();
+        self.datetime = date.timestamp();
+    }
+}
 /// sidt -r -t
 /// sidt -r
 /// Sub args for the read arg

@@ -111,14 +111,16 @@ fn main() {
 
                 match context {
                     Context::MainEntry => {
-                        let entry = build_entry(Context::MainEntry, next_arg, args);
+                        let mut entry = build_entry(Context::MainEntry, next_arg, args);
+                        entry.set_date(yesterday);
                         write_entry(entry)
                     }
                     Context::Tag(tag) => {
                         let next_arg = args.next();
                         match next_arg {
                             Some(arg) => {
-                                let entry = build_entry(Context::Tag(tag), &arg, args);
+                                let mut entry = build_entry(Context::Tag(tag), &arg, args);
+                                entry.set_date(yesterday);
                                 write_entry(entry);
                             }
                             _ => {
