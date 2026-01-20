@@ -1,10 +1,7 @@
 use chrono::{prelude::*, DateTime, Local, NaiveDate, TimeDelta};
 use rustyline::DefaultEditor;
 use sidt::db::*;
-use sidt::{
-    assign_read_subarg, build_entry, get_context, get_date, get_help, is_reserved_value,
-    update_date, Context, ReadSubArg,
-};
+use sidt::{assign_read_subarg, build_entry, get_context, get_date, get_help, get_yesterday, is_reserved_value, update_date, Context, ReadSubArg};
 use std::env::{self};
 use std::slice::Iter;
 use log;
@@ -99,11 +96,7 @@ fn main() {
                 }
             }
             "-y" | "--yesterday" => {
-                // Format yesterday's date
-                let secs: i64 = -60 * 60 * 24;
-                let nanos: u32 = 0;
-                let delta: TimeDelta = TimeDelta::new(secs, nanos).unwrap();
-                let yesterday = Local::now().checked_add_signed(delta).unwrap();
+                let yesterday = get_yesterday();
                 println!("{}", &yesterday);
                 let context = get_context(Some(first_arg)).unwrap();
                 let next_arg = args.next().expect("Entry required after arg.");

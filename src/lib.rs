@@ -272,6 +272,14 @@ fn format_date(day: i32, month: u32, year: i32) -> String {
     date
 }
 
+pub fn get_yesterday() -> DateTime<Local> {
+    // Format yesterday's date
+    let secs: i64 = -60 * 60 * 24;
+    let nanos: u32 = 0;
+    let delta: TimeDelta = TimeDelta::new(secs, nanos).unwrap();
+    Local::now().checked_add_signed(delta).unwrap()
+}
+
 // Return a list of arguments and useful information about how to use the program
 pub fn get_help() {
     println!("Usage: sidt <entry>");
